@@ -52,7 +52,7 @@ def upgrade() -> None:
 
 def downgrade() -> None:
 
-    # Удаляют таблицу с данными
+    # Удаляем таблицу с данными сайта
     op.drop_index(op.f("ix_info_id"), table_name="info")
     op.drop_index(op.f("ix_info_slug"), table_name="info")
     op.drop_table("info")

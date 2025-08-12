@@ -9,7 +9,7 @@ from src.core.config import settings
 (движок, фабрика сессий, Зависимость (Dependency) для получения сессии)"""
 
 async_engine = create_async_engine(
-    url=settings.db.db_url_async.get_secret_value(),
+    url=settings.db.url_async.get_secret_value(),
     echo=settings.db.db_echo,
     pool_pre_ping=True,
     pool_recycle=3600,
@@ -29,7 +29,7 @@ async def get_async_session():
 """Основные настройки для работы с синхронной БД 
 (движок, фабрика сессий, Зависимость (Dependency) для получения сессии)"""
 
-sync_engine = create_engine(url=settings.db.db_url_sync.get_secret_value(), echo=settings.db.db_echo)
+sync_engine = create_engine(url=settings.db.url_sync.get_secret_value(), echo=settings.db.db_echo)
 SyncSessionLocal = sessionmaker(bind=sync_engine, expire_on_commit=False)
 
 

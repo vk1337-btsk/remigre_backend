@@ -45,14 +45,14 @@ class DatabaseConfig(BaseConfig):
         return info.data["debug"]
 
     @property
-    def db_url_async(self) -> SecretStr:
+    def url_async(self) -> SecretStr:
         return SecretStr(
             f"postgresql+asyncpg://{self.db_user}:{self.db_password.get_secret_value()}@"
             f"{self.db_host}:{self.db_port}/{self.db_name}"
         )
 
     @property
-    def db_url_sync(self) -> SecretStr:
+    def url_sync(self) -> SecretStr:
         return SecretStr(
             f"postgresql+psycopg2://{self.db_user}:{self.db_password.get_secret_value()}@"
             f"{self.db_host}:{self.db_port}/{self.db_name}"

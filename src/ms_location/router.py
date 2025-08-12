@@ -1,0 +1,93 @@
+from typing import Optional
+from fastapi import APIRouter, Depends, Path, Query
+
+from src.ms_location.services.location_service import LocationService
+
+
+router = APIRouter(prefix="/location", tags=["Location"])
+
+
+@router.get(
+    "/search",
+    summary="Поиск по названию страны/города",
+    description="Начинаешь вводить название -> получаешь варианты",
+)
+async def get_search(
+    name_search: str = Query(..., min_length=1, title="Название и/или часть названия страны/города"),
+    service: LocationService = Depends(),
+):
+    return await service.search_location_by_part_word(name_search)
+
+
+# --------------- Эндпоинты стран --------------
+@router.get(
+    "/countries",
+    summary="Получить список стран",
+    description="Можно получить список стран с базовой информацией, или только список стран для фильтрации",
+)
+async def get_all_counties(
+    only_list: bool = Query(default=False, title="Вернуть только список стран"),
+    service: LocationService = Depends(),
+):
+
+    return await service.get_countries(only_list)
+
+
+@router.get(
+    "/country/{country_id}",
+    summary="Получить информацию о стране по id",
+    description="Получаем подробную базовую информацию о стране",
+)
+async def get_country_by_id(country_id: int = Path(gt=1, title="ID страны")):
+    pass
+
+
+@router.get(
+    "/country/{county_name}",
+    summary="Получить информацию о стране по названию ENG",
+    description="Получаем подробную базовую информацию о стране",
+)
+async def get_country_by_name(county_name: str = Path(title="Название страны")):
+    pass
+
+
+# --------------- Эндпоинты городов --------------
+@router.get(
+    "/cities",
+    summary="Получить список городов",
+    description="Можно получить список городов с базовой информацией, или только список стран для фильтрации",
+)
+async def get_all_city(
+    only_list: bool = Query(default=False, title="Определяет необходимость предоставления базовой информации")
+):
+    pass
+
+
+@router.get(
+    "/city/{coordinates}",
+    summary="Получить информацию о городе по координатам",
+    description="Получаем подробную базовую информацию о городе",
+)
+async def get_city_by_coordinates(coordinates: str = Path(title="Координаты города")):
+    pass
+
+
+@router.get(
+    "/city/{city_id}",
+    summary="Получить информацию о городе по id",
+    description="Получаем подробную базовую информацию о городе",
+)
+async def get_city_by_id(city_id: int = Path(title="ID города")):
+    pass
+
+
+@router.get(
+    "/city/{county_name}_{city_name}",
+    summary="Получить информацию о городе по названию страны ENG и города ENG",
+    description="Получаем подробную базовую информацию о городе",
+)
+async def get_city_by_country_id_and_eng(
+    county_name: str = Path(title="Название страны"),
+    city_name: str = Path(title="Название города"),
+):
+    pass

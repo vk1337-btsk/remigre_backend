@@ -1,6 +1,11 @@
-from sqlalchemy import Integer, Column, String, Text
+import logging
 
-from src.core.models.base_models import AbstractBaseModel
+from sqlalchemy import Column, Integer, String, Text
+
+from src.core.database.base_models import AbstractBaseModel
+
+
+logger = logging.getLogger(__name__)
 
 
 class InfoModel(AbstractBaseModel):
@@ -12,3 +17,5 @@ class InfoModel(AbstractBaseModel):
     id = Column(Integer, primary_key=True, index=True, comment="ID записи")
     slug = Column(String, nullable=False, index=True, unique=True, comment="Название раздела")
     description = Column(Text, nullable=False, comment="Описание раздела")
+
+    # Классовые методы

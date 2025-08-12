@@ -15,10 +15,12 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from sqladmin import Admin
 
-from src.core.database import async_engine
-from src.ms_trava.admin.views import InfoAdminView
-from src.ms_trava.routers.info_router import router as info_router
-from src.ms_trava.routers.location_router import router as location_router
+import src.core.database.models_init
+from src.core.database.db_config import async_engine
+from src.ms_location.router import router as location_router
+from src.ms_main.admin.views import InfoAdminView
+from src.ms_main.router import router as info_router
+from src.ms_metric.router import router as metric_router
 
 
 # --------------- Основное приложение FastAPI ---------------
@@ -51,6 +53,7 @@ app.add_middleware(
 # --------------- Добавляем маршрутизацию --------------
 app.include_router(info_router)
 app.include_router(location_router)
+app.include_router(metric_router)
 
 
 # --------------- Логгируем необходимую информацию --------------

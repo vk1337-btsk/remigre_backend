@@ -13,7 +13,7 @@ class AbstractBaseModel(DeclarativeBase):
     id = Column(Integer, primary_key=True)
 
     created_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         default=datetime.now(timezone.utc),
         server_default=text("CURRENT_TIMESTAMP"),
         nullable=False,
@@ -21,7 +21,7 @@ class AbstractBaseModel(DeclarativeBase):
     )
 
     updated_at = Column(
-        DateTime,
+        DateTime(timezone=True),
         default=datetime.now(timezone.utc),
         onupdate=datetime.now(timezone.utc),
         server_default=text("CURRENT_TIMESTAMP"),

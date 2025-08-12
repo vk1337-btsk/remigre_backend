@@ -3,17 +3,26 @@ from logging.config import fileConfig
 
 from sqlalchemy import engine_from_config, pool
 
+import src.core.database.models_init
 from alembic import context
+from alembic.script import ScriptDirectory
 from src.core.config import settings
-from src.core.models.base_models import AbstractBaseModel
+from src.core.database.base_models import AbstractBaseModel
 
 
 # Определяю используемые переменные из config
-DB_URL: str = settings.db.db_url_sync.get_secret_value()  # type:ignore
+DB_URL: str = settings.db.url_sync.get_secret_value()  # type:ignore
 
 
 # Получаем Alembic config объект
 config = context.config
+
+
+script = ScriptDirectory.from_config(config)
+
+for rev in script.walk_revisions():
+    print(rev.revision, rev.doc)
+
 
 # Установка строки подключения к БД вручную
 config.set_main_option("sqlalchemy.url", DB_URL)
@@ -44,6 +53,11 @@ def run_migrations_offline() -> None:
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
+        version_table="alembic_version",
+        version_table_branch_label="branch_label",
+        include_schemas=True,
+        compare_type=True,
+        render_as_batch=True,
     )
 
     with context.begin_transaction():
@@ -67,6 +81,11 @@ def run_migrations_online() -> None:
         context.configure(
             connection=connection,
             target_metadata=target_metadata,
+            version_table="alembic_version",
+            version_table_branch_label="branch_label",
+            include_schemas=True,
+            compare_type=True,
+            render_as_batch=True,
             file_template=f"{datetime.now().strftime('%Y%m%d')}-%(slug)s",
         )
 
