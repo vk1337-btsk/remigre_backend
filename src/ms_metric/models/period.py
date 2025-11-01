@@ -11,9 +11,8 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-import src.core.database.models_init
 from src.core.database.base_models import AbstractBaseModel
-from src.core.enums import PeriodTypeEnum
+from src.ms_metric.enums import PeriodTypeEnum
 
 
 logger = logging.getLogger(__name__)

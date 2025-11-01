@@ -18,7 +18,7 @@ from sqlalchemy import (
 )
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
-from sqlalchemy.orm import relationship
+from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
 from src.core.database.base_crud_mixin import BaseCRUDMixin
 from src.core.database.base_dto import GetFilteredListDTO
@@ -34,7 +34,7 @@ from src.ms_location.dto.city_dto import (
 logger = logging.getLogger(__name__)
 
 
-class CityModel(BaseCRUDMixin, AbstractBaseModel):
+class CityModel(AbstractBaseModel):
     """Модель с данными о городе"""
 
     __tablename__ = "city"
@@ -98,7 +98,7 @@ class CityModel(BaseCRUDMixin, AbstractBaseModel):
     region = relationship("RegionModel", back_populates="cities", lazy="selectin", foreign_keys=[region_id])
     data_entries = relationship("MetricDataModel", back_populates="city", lazy="selectin", cascade="all, delete-orphan")
 
-    # Классовые методы
+    # ======== Классовые методы ========
     @classmethod
     def _get_relationship_map(cls) -> dict[str, tuple[str, Any]]:
         """Возвращает отображение DTO-флагов на отношения модели"""
@@ -108,40 +108,6 @@ class CityModel(BaseCRUDMixin, AbstractBaseModel):
             "with_country": ("cities", cls.country),
             "with_data": ("data_entries", cls.data_entries),
         }
-
-    # Классовые методы
-    @classmethod
-    async def get(
-        cls,
-        session: AsyncSession,
-        dto_get: CityGetDTO,
-        dto_options: Optional[CityOptionsDTO] = None,
-        related_filters: Optional[dict[str, dict[str, Any]]] = None,
-    ) -> Optional["CityModel"]:
-        """Возвращает объект CountryModel с опциональной подгрузкой связанных сущностей, если не найдено - None."""
-
-        stmt = select(cls)
-
-        # Определения условий поиска объекта
-        if dto_get.id:
-            stmt = stmt.where(cls.id == dto_get.id)
-        elif dto_get.country_id and dto_get.name:
-            stmt = stmt.where(and_(cls.country_id == dto_get.country_id, cls.name == dto_get.name))
-        elif dto_get.country_id and dto_get.name_eng:
-            stmt = stmt.where(and_(cls.country_id == dto_get.country_id, cls.name_eng == dto_get.name_eng))
-        elif dto_get.latitude and dto_get.longitude:
-            stmt = stmt.where(and_(cls.latitude == dto_get.latitude, cls.longitude == dto_get.longitude))
-        else:
-            ValueError(f"Не хватает данных для поиска уникального города: {dto_get}")
-
-        # Опциональная подгрузка связей
-        stmt = stmt.options(*cls.__build_relationship_options(dto_options, related_filters))
-
-        result = await session.execute(stmt.limit(1))
-
-        logger.debug(f"Получение объекта {cls.__name__} - {result=} по данным: {dto_get=}.")
-
-        return result.scalar_one_or_none()
 
     @classmethod
     async def create(cls, session: AsyncSession, dto_create: CityCreateDTO) -> "CityModel":
@@ -203,20 +169,37 @@ class CityModel(BaseCRUDMixin, AbstractBaseModel):
         return result.scalar_one_or_none() is not None
 
     @classmethod
-    async def delete(cls, session: AsyncSession, dto_get: CityGetDTO) -> bool:
-        """Удаление объекта CityModel. Возвращает True, если объект найден и удалён, иначе False."""
+    async def get(
+        cls,
+        session: AsyncSession,
+        dto_get: CityGetDTO,
+        dto_options: Optional[CityOptionsDTO] = None,
+        related_filters: Optional[dict[str, dict[str, Any]]] = None,
+    ) -> Optional["CityModel"]:
+        """Возвращает объект CityModel с опциональной подгрузкой связанных сущностей, если не найдено - None."""
 
-        instance = await cls.get(session, dto_get)
-        if not instance:
-            logger.debug(f"Объект {cls.__name__} с данными для поиска {dto_get=} не найден и не удалён.")
-            return False
+        stmt = select(cls)
 
-        await session.delete(instance)
-        await session.commit()
+        # Определения условий поиска объекта
+        if dto_get.id:
+            stmt = stmt.where(cls.id == dto_get.id)
+        elif dto_get.country_id and dto_get.name:
+            stmt = stmt.where(and_(cls.country_id == dto_get.country_id, cls.name == dto_get.name))
+        elif dto_get.country_id and dto_get.name_eng:
+            stmt = stmt.where(and_(cls.country_id == dto_get.country_id, cls.name_eng == dto_get.name_eng))
+        elif dto_get.coordinates:
+            stmt = stmt.where(and_(cls.coordinates == dto_get.coordinates))
+        else:
+            ValueError(f"Не хватает данных для поиска уникального города: {dto_get}")
 
-        logger.debug(f"Объект {cls.__name__} с данными для поиска {dto_get=} найден и удалён.")
+        # Опциональная подгрузка связей
+        stmt = stmt.options(*cls.__build_relationship_options(dto_options, related_filters))
 
-        return True
+        result = await session.execute(stmt.limit(1))
+
+        logger.debug(f"Получение объекта {cls.__name__} - {result=} по данным: {dto_get=}.")
+
+        return result.scalar_one_or_none()
 
     @classmethod
     async def get_all_filtered(
@@ -226,7 +209,7 @@ class CityModel(BaseCRUDMixin, AbstractBaseModel):
         dto_options: Optional[CityOptionsDTO] = None,
         related_filters: Optional[dict[str, dict[str, Any]]] = None,
     ) -> Sequence["CityModel"]:
-        """Получить список объектов CountryModel с возможностью:
+        """Получить список объектов CityModel с возможностью:
         - фильтрации по точным, LIKE- и IN-условиям с поддержкой пагинации по dto_filters. Если не задан -
             вернёт все объекты
         - подгрузки связанных сущностей
@@ -274,3 +257,54 @@ class CityModel(BaseCRUDMixin, AbstractBaseModel):
         logger.debug(f"Выполнение запроса {cls.__name__} с фильтрами {dto_filters} и опциями {dto_options}")
 
         return result.scalars().all()
+
+    @classmethod
+    async def delete(cls, session: AsyncSession, dto_get: CityGetDTO) -> bool:
+        """Удаление объекта CityModel. Возвращает True, если объект найден и удалён, иначе False."""
+
+        instance = await cls.get(session, dto_get)
+        if not instance:
+            logger.debug(f"Объект {cls.__name__} с данными для поиска {dto_get=} не найден и не удалён.")
+            return False
+
+        await session.delete(instance)
+        await session.commit()
+
+        logger.debug(f"Объект {cls.__name__} с данными для поиска {dto_get=} найден и удалён.")
+
+        return True
+
+    @classmethod
+    def __build_relationship_options(
+        cls,
+        dto_options: Optional[CityOptionsDTO] = None,
+        related_filters: Optional[dict[str, dict[str, Any]]] = None,
+    ) -> list:
+        """Формирует SQLAlchemy options() для подгрузки связей с фильтрацией."""
+
+        def _build_filter_conditions(model_cls, filters: dict[str, Any]):
+            conditions = []
+            for field, value in filters.items():
+                column = getattr(model_cls, field, None)
+                if column is not None:
+                    conditions.append(column == value)
+            return and_(*conditions) if conditions else None
+
+        if not dto_options:
+            return []
+
+        options = []
+        relationship_map = cls._get_relationship_map()
+
+        for dto_field, (relation_name, relation_attr) in relationship_map.items():
+            # Добавляем опцию ТОЛЬКО если флаг в dto_options равен True
+            if dto_options and getattr(dto_options, dto_field, False) is True:
+                options.append(selectinload(relation_attr))
+                # Фильтры для подгрузки
+                if related_filters and relation_name in related_filters:
+                    model_cls = relation_attr.property.mapper.class_
+                    criteria = _build_filter_conditions(model_cls, related_filters[relation_name])
+                    if criteria is not None:
+                        options.append(with_loader_criteria(model_cls, criteria))
+
+        return options

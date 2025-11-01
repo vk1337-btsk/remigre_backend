@@ -1,6 +1,7 @@
 import logging
 from typing import Any, Optional, Sequence
 
+from geoalchemy2 import Geometry
 from sqlalchemy import (
     Boolean,
     CheckConstraint,
@@ -19,9 +20,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database import GetFilteredListDTO
-from src.core.database.base_models import AbstractBaseModel
-from src.ms_location.dto.country_dto import (
+from src.core.database import AbstractBaseModel, GetFilteredListDTO
+from src.ms_location.dto import (
     CountryCreateDTO,
     CountryGetDTO,
     CountryOptionsDTO,
@@ -49,11 +49,18 @@ class CountryModel(AbstractBaseModel):
     id = Column(Integer, primary_key=True, index=True, comment="ID страны")
     name = Column(String(255), nullable=False, index=True, unique=True, comment="Название страны")
     name_eng = Column(String(255), nullable=False, index=True, unique=True, comment="Название страны ENG")
-    iso_code = Column(String(10), nullable=False, index=True, unique=True, comment="Код страны ISO")
+
+    # Код страны
+    iso_alpha_2 = Column(String(2), nullable=False, index=True, unique=True, comment="ISO Alpha-2")
+    iso_alpha_3 = Column(String(3), nullable=False, index=True, unique=True, comment="ISO Alpha-3")
+    iso_digits = Column(String(3), nullable=True, index=True, unique=True, comment="ISO Digits")
 
     # Местоположение
     latitude = Column(Float, nullable=False, index=True, comment="Широта")
     longitude = Column(Float, nullable=False, index=True, comment="Долгота")
+    geometry = Column(
+        Geometry(geometry_type="MULTIPOLYGON", srid=4326), nullable=True, comment="Геометрия страны в формате GeoJSON"
+    )
 
     # Характеристика страны
     language = Column(String(50), nullable=True, comment="Основной язык страны")
@@ -63,11 +70,6 @@ class CountryModel(AbstractBaseModel):
     description = Column(Text, nullable=True, comment="Описание страны")
     population = Column(Integer, nullable=True, comment="Население страны")
     climate = Column(String(100), nullable=True, comment="Климат страны")
-
-    @hybrid_property
-    def coordinates(self):
-        """Координаты"""
-        return f"{self.latitude},{self.longitude}"
 
     # Важные статусы
     is_active = Column(Boolean, nullable=False, default=True, server_default=text("true"), comment="Отображение страны")
@@ -79,10 +81,15 @@ class CountryModel(AbstractBaseModel):
         "MetricDataModel", back_populates="country", lazy="select", cascade="all, delete-orphan"
     )
 
-    def __repr__(self):
-        return f"<CountryModel id={self.id} name={self.name} iso_code={self.iso_code}>"
+    @hybrid_property
+    def coordinates(self):
+        """Координаты"""
+        return f"{self.latitude},{self.longitude}"
 
-    # Классовые методы
+    def __repr__(self):
+        return f"<CountryModel id={self.id} name={self.name} iso_code={self.iso_alpha_2}>"
+
+    # ======== Классовые методы ========
     @classmethod
     def _get_relationship_map(cls) -> dict[str, tuple[str, Any]]:
         """Возвращает отображение DTO-флагов на отношения модели"""
@@ -93,7 +100,6 @@ class CountryModel(AbstractBaseModel):
             "with_data": ("data_entries", cls.data_entries),
         }
 
-    # Классовые методы
     @classmethod
     async def create(cls, session: AsyncSession, dto_create: CountryCreateDTO) -> "CountryModel":
         """Создание нового объекта CountryModel."""
@@ -173,8 +179,12 @@ class CountryModel(AbstractBaseModel):
             stmt = stmt.where(cls.name == dto_get.name)
         elif dto_get.name_eng:
             stmt = stmt.where(cls.name_eng == dto_get.name_eng)
-        elif dto_get.iso_code:
-            stmt = stmt.where(cls.iso_code == dto_get.iso_code)
+        elif dto_get.iso_alpha_2:
+            stmt = stmt.where(cls.iso_alpha_2 == dto_get.iso_alpha_2)
+        elif dto_get.iso_alpha_3:
+            stmt = stmt.where(cls.iso_alpha_3 == dto_get.iso_alpha_3)
+        elif dto_get.iso_digits:
+            stmt = stmt.where(cls.iso_digits == dto_get.iso_digits)
         else:
             ValueError(f"Не хватает данных для поиска страны: {dto_get}")
 

@@ -8,6 +8,7 @@ Create Date: 2025-06-22 13:10:24.995473
 
 from typing import Sequence, Union
 
+from geoalchemy2 import Geometry
 import sqlalchemy as sa
 
 from alembic import op
@@ -29,10 +30,19 @@ def create_contry():
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False, comment="ID страны"),
         sa.Column("name", sa.String(length=255), nullable=False, comment="Название страны"),
         sa.Column("name_eng", sa.String(length=255), nullable=False, comment="Название страны ENG"),
-        sa.Column("iso_code", sa.String(length=10), nullable=False, comment="Код страны ISO"),
+        # Код страны
+        sa.Column("iso_alpha_2", sa.String(length=2), nullable=False, comment="ISO Alpha-2"),
+        sa.Column("iso_alpha_3", sa.String(length=3), nullable=False, comment="ISO Alpha-3"),
+        sa.Column("iso_digits", sa.String(length=3), nullable=True, comment="ISO Digits"),
         # Местоположение
         sa.Column("latitude", sa.Float(), nullable=False, comment="Широта"),
         sa.Column("longitude", sa.Float(), nullable=False, comment="Долгота"),
+        sa.Column(
+            "geometry",
+            Geometry(geometry_type="MULTIPOLYGON", srid=4326),
+            nullable=True,
+            comment="Геометрия страны в формате GeoJSON",
+        ),
         # Характеристика страны
         sa.Column("language", sa.String(length=50), nullable=True, comment="Основной язык страны"),
         sa.Column("currency", sa.String(length=10), nullable=True, comment="Валюта страны"),
@@ -66,13 +76,17 @@ def create_contry():
     op.create_index("ix_country_id", "country", ["id"])
     op.create_index("ix_country_name", "country", ["name"])
     op.create_index("ix_country_name_eng", "country", ["name_eng"])
-    op.create_index("ix_country_iso_code", "country", ["iso_code"])
+    op.create_index("ix_country_iso_alpha_2", "country", ["iso_alpha_2"])
+    op.create_index("ix_country_iso_alpha_3", "country", ["iso_alpha_3"])
+    op.create_index("ix_country_iso_digits", "country", ["iso_digits"])
     op.create_index("ix_country_latitude", "country", ["latitude"])
     op.create_index("ix_country_longitude", "country", ["longitude"])
     # Создаю уникальные ограничения
     op.create_unique_constraint("uq_country_name", "country", ["name"])
     op.create_unique_constraint("uq_country_name_eng", "country", ["name_eng"])
-    op.create_unique_constraint("uq_country_iso_code", "country", ["iso_code"])
+    op.create_unique_constraint("uq_country_iso_alpha_2", "country", ["iso_alpha_2"])
+    op.create_unique_constraint("uq_country_iso_alpha_3", "country", ["iso_alpha_3"])
+    op.create_unique_constraint("uq_country_iso_digits", "country", ["iso_digits"])
     op.create_unique_constraint("uq_country_coordinates", "country", ["latitude", "longitude"])
     # Создаю проверки
     op.create_check_constraint("ck_country_longitude_range", "country", "longitude BETWEEN -180 AND 180")
@@ -83,7 +97,9 @@ def delete_country():
 
     # Удаляю индексы, проверки для таблицы городов country
     op.drop_index("ix_country_id", table_name="country")
-    op.drop_index("ix_country_iso_code", table_name="country")
+    op.drop_index("ix_country_iso_alpha_2", table_name="country")
+    op.drop_index("ix_country_iso_alpha_3", table_name="country")
+    op.drop_index("ix_country_iso_digits", table_name="country")
     op.drop_index("ix_country_name", table_name="country")
     op.drop_index("ix_country_name_eng", table_name="country")
     op.drop_index("ix_country_latitude", table_name="country")
@@ -91,7 +107,9 @@ def delete_country():
 
     op.drop_constraint("uq_country_name", "country", type_="unique")
     op.drop_constraint("uq_country_name_eng", "country", type_="unique")
-    op.drop_constraint("uq_country_iso_code", "country", type_="unique")
+    op.drop_constraint("uq_country_iso_alpha_2", "country", type_="unique")
+    op.drop_constraint("uq_country_iso_alpha_3", "country", type_="unique")
+    op.drop_constraint("uq_country_iso_digits", "country", type_="unique")
     op.drop_constraint("uq_country_coordinates", "country", type_="unique")
 
     op.drop_constraint("ck_country_longitude_range", "country", type_="check")

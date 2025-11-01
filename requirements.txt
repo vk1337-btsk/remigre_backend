@@ -1,0 +1,11 @@
+alembic==1.16.2
+asyncpg==0.30.0
+fastapi==0.115.13
+httpx==0.28.1
+psycopg2-binary==2.9.10
+pydantic-settings==2.9.1
+pydantic==2.11.7
+requests==2.32.4
+sqladmin==0.20.1
+sqlalchemy==2.0.41
+uvicorn==0.34.3

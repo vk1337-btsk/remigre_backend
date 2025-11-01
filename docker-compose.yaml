@@ -1,0 +1,27 @@
+
+services:
+  db:
+    image: postgres:17
+    container_name: trava_db
+    restart: always
+    env_file: .env
+    ports:
+      - "${DB_PORT}:5432"
+    volumes:
+      - pg_data:/var/lib/postgresql/data
+      - ./trava.dump:/docker-entrypoint-initdb.d/trava.dump
+
+  web:
+    build: .
+    container_name: trava_api
+    restart: always
+    env_file: .env
+    depends_on:
+      - db
+    ports:
+      - "${DEVELOP_FASTAPI_PORT}:8000"
+    volumes:
+      - .:/app
+
+volumes:
+  pg_data:

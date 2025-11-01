@@ -22,8 +22,7 @@ class CityGetDTO(BaseModel):
     country_id: Optional[int] = None
     name: Optional[str] = None
     name_eng: Optional[str] = None
-    latitude: Optional[float] = None
-    longitude: Optional[float] = None
+    coordinates: Optional[str] = None
 
 
 class CityCreateDTO(BaseModel):
@@ -41,6 +40,7 @@ class CityCreateDTO(BaseModel):
     language: Optional[str] = None
     climate: Optional[str] = None
     description: Optional[str] = None
+    is_active: Optional[bool] = None
 
 
 class CityUpdateDTO(BaseModel):
@@ -58,3 +58,4 @@ class CityUpdateDTO(BaseModel):
     language: Optional[str] = None
     climate: Optional[str] = None
     description: Optional[str] = None
+    is_active: Optional[bool] = None

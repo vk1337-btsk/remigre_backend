@@ -29,3 +29,10 @@ class CategoryMetricEnum(Enum):
     QUALITY_OF_LIFE = "quality of life"
     EMIGRATION = "emigration"
     UNCATEGORIZED = "uncategorized"
+
+
+class TypeLocation(Enum):
+
+    CITY = "city"
+    REGION = "region"
+    COUNTRY = "country"

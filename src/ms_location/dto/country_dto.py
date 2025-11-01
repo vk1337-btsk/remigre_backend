@@ -1,7 +1,7 @@
 import logging
 from typing import Optional
 
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel
 
 
 logger = logging.getLogger(__name__)
@@ -21,7 +21,9 @@ class CountryGetDTO(BaseModel):
     id: Optional[int] = None
     name: Optional[str] = None
     name_eng: Optional[str] = None
-    iso_code: Optional[str] = None
+    iso_alpha_2: Optional[str] = None
+    iso_alpha_3: Optional[str] = None
+    iso_digits: Optional[str] = None
 
 
 class CountryCreateDTO(BaseModel):
@@ -29,7 +31,9 @@ class CountryCreateDTO(BaseModel):
 
     name: str
     name_eng: str
-    iso_code: str
+    iso_alpha_2: str
+    iso_alpha_3: str
+    iso_digits: str
     latitude: float
     longitude: float
     language: Optional[str] = None
@@ -47,9 +51,11 @@ class CountryUpdateDTO(BaseModel):
 
     name: Optional[str] = None
     name_eng: Optional[str] = None
-    iso_code: Optional[str] = None
-    latitude: Optional[float]
-    longitude: Optional[float]
+    iso_alpha_2: Optional[str] = None
+    iso_alpha_3: Optional[str] = None
+    iso_digits: Optional[str] = None
+    latitude: Optional[float] = None
+    longitude: Optional[float] = None
     language: Optional[str] = None
     currency: Optional[str] = None
     timezone: Optional[str] = None

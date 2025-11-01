@@ -61,7 +61,7 @@ async def fetch_and_save_cities(
 
             new_cities_count = 0
             n = 0
-            print(f"{edges=}")
+            # print(f"{edges=}")
             for edge in edges:
                 node = edge.get("node")
                 if not node:
@@ -71,7 +71,7 @@ async def fetch_and_save_cities(
                 longitude = node.get("longitude")
                 population = node.get("population", 0)
                 description = node.get("id")
-                print(f"№ {n}, {id=} город {city_name},")
+                print(f"№ {n}, {node.get('id')=} город {city_name},")
                 n += 1
                 if not all([city_name, latitude, longitude]):
                     continue
@@ -132,7 +132,7 @@ async def run():
 
         # 3. Парсим города по каждой стране
         for country in countries:
-            if country["id"] >= 45:  # временное решение
+            if country["id"] >= 220:  # временное решение
                 # continue
                 await fetch_and_save_cities(
                     session,
