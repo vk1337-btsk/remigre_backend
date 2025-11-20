@@ -1,3 +1,5 @@
+"""Скрипт заполняет таблицу ISO кодами стран"""
+
 import asyncio
 import csv
 import logging

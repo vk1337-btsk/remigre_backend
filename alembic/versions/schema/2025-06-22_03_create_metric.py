@@ -21,7 +21,15 @@ branch_labels: Union[str, Sequence[str], None] = None
 depends_on: Union[str, Sequence[str], None] = None
 
 
-type_data_enum = postgresql.ENUM("int", "string", "float", "range", "bool", name="type_data_enum", create_type=False)
+type_data_enum = postgresql.ENUM(
+    "int",
+    "string",
+    "float",
+    "range",
+    "bool",
+    name="type_data_enum",
+    create_type=False,
+)
 period_type_enum = postgresql.ENUM(
     "one_time",
     "yearly",
@@ -65,6 +73,9 @@ def upgrade() -> None:
         sa.Column("source_url", sa.String(length=255), nullable=True, comment="URL источника метрики"),
         sa.Column("type_data", type_data_enum, nullable=False, comment="Тип данных метрики (int/str/range/bool)"),
         sa.Column("unit_format", sa.String(length=255), nullable=False, comment="Единица измерения метрики"),
+        sa.Column(
+            "add_info", postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment="Дополнительная информация"
+        ),
         sa.Column(
             "is_active", sa.Boolean(), nullable=False, server_default=sa.text("true"), comment="Активность метрики"
         ),
@@ -113,6 +124,9 @@ def upgrade() -> None:
         # Информация о получении данных
         sa.Column("collected_at", sa.DateTime(), nullable=True, comment="Когда были собраны данные"),
         sa.Column("source_url", sa.String(length=512), nullable=True, comment="Источник метрики"),
+        sa.Column(
+            "add_info", postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment="Дополнительная информация"
+        ),
         # Время создания/изменения
         sa.Column(
             "created_at",
@@ -190,6 +204,9 @@ def upgrade() -> None:
         sa.Column("value_range_min", sa.Integer(), nullable=True, comment="Значение в формате MIN RANGE"),
         sa.Column("value_range_max", sa.Integer(), nullable=True, comment="Значение в формате MAX RANGE"),
         sa.Column("value_bool", sa.Boolean(), nullable=True, comment="Значение BOOL"),
+        sa.Column(
+            "add_info", postgresql.JSONB(astext_type=sa.Text()), nullable=True, comment="Дополнительная информация"
+        ),
         # Время создания/изменения
         sa.Column(
             "created_at",

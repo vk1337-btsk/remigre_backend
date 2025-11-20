@@ -6,6 +6,7 @@ from fastapi import APIRouter, Depends, Path, Query
 from src.ms_location.schemas.schemas import (
     CityDetailSchema,
     CountryDetailSchema,
+    CountryListSchema,
     LocationOnlyListSchema,
     SearchLocationSchema,
 )
@@ -24,7 +25,7 @@ router = APIRouter(prefix="/location", tags=["Location"])
     description="Начинаешь вводить название -> получаешь варианты",
 )
 async def get_search(
-    name_search: str = Query(..., min_length=1, title="Название и/или часть названия страны/города"),
+    name_search: str = Query(min_length=3, title="Название и/или часть названия страны/города"),
     service: LocationService = Depends(),
 ) -> SearchLocationSchema:
     return await service.search_location_by_part_word(name_search)
@@ -33,18 +34,18 @@ async def get_search(
 # --------------- Эндпоинты стран --------------
 @router.get(
     "/countries",
-    summary="Получить список стран",
+    summary="Получить список стран (c основной или детальной информацией)",
     description="Можно получить список стран с базовой информацией, или только список стран для фильтрации",
 )
 async def get_all_counties(
     only_list: bool = Query(default=False, title="Вернуть только список стран"),
     service: LocationService = Depends(),
-) -> Union[list[LocationOnlyListSchema], list[CountryDetailSchema]]:
+) -> Union[list[CountryListSchema], list[CountryDetailSchema]]:
     return await service.get_countries(only_list)
 
 
 @router.get(
-    "/country/{country_id}",
+    "/country/id/{country_id}",
     summary="Получить информацию о стране по id",
     description="Получаем подробную базовую информацию о стране",
 )
@@ -56,7 +57,7 @@ async def get_country_by_id(
 
 
 @router.get(
-    "/country/{county_name}",
+    "/country/name/{county_name}",
     summary="Получить информацию о стране по названию ENG",
     description="Получаем подробную базовую информацию о стране",
 )
@@ -81,7 +82,7 @@ async def get_all_city(
 
 
 @router.get(
-    "/city/{city_id}",
+    "/city/id/{city_id}",
     summary="Получить информацию о городе по id",
     description="Получаем подробную базовую информацию о городе",
 )
@@ -93,7 +94,7 @@ async def get_city_by_id(
 
 
 @router.get(
-    "/city/{county_name}_{city_name}",
+    "/city/name/{county_name}_{city_name}",
     summary="Получить информацию о городе по названию страны ENG и города ENG",
     description="Получаем подробную базовую информацию о городе",
 )
@@ -106,7 +107,7 @@ async def get_city_by_country_id_and_eng(
 
 
 @router.get(
-    "/city/{coordinates}",
+    "/city/coordinates/{coordinates}",
     summary="Получить информацию о городе по координатам",
     description="Получаем подробную базовую информацию о городе",
 )

@@ -1,3 +1,5 @@
+"""Скрипт заполняет таблицу городов по странам"""
+
 import asyncio
 import json
 from pathlib import Path

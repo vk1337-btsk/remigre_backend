@@ -20,6 +20,7 @@ class MetricService:
         self,
         only_list: bool,
     ) -> Union[list[MetricOnlyListSchema], list[MetricDetailSchema]]:
+        """Возвращает список всех метрик с основной или детальной информацией в зависимости от query параметра."""
 
         if only_list:
             result = [MetricOnlyListSchema.model_validate(el) for el in await self.service_db.get_all_metrics()]
@@ -29,6 +30,8 @@ class MetricService:
             return result
 
     async def get_metric(self, slug: str) -> MetricDetailSchema:
+        """Возвращает метрику с детальной информацией."""
+
         result = await self.service_db.get_metric(slug)
         return result
 
@@ -36,6 +39,7 @@ class MetricService:
         self,
         country_id: Optional[int] = None,
         country_name: Optional[str] = None,
+        only_list: Optional[bool] = True,
     ):
 
         if country_id:

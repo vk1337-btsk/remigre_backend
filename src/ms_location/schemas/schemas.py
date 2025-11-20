@@ -16,6 +16,12 @@ class LocationOnlyListSchema(BaseSchema):
     name: str
 
 
+class CountryListSchema(BaseSchema):
+
+    id: int
+    name: str
+
+
 class SearchLocationSchema(BaseSchema):
 
     country: list[LocationOnlyListSchema]

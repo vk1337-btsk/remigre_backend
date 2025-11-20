@@ -1,3 +1,5 @@
+"""Скрипт заполняет таблицу геометрии стран"""
+
 import asyncio
 import json
 import logging

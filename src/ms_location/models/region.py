@@ -21,7 +21,7 @@ logger = logging.getLogger(__name__)
 class RegionModel(AbstractBaseModel):
     """Модель с данными о регионе"""
 
-    __tablename__ = "region"
+    __tablename__ = "loc_region"
 
     __table_args__ = (
         UniqueConstraint("country_id", "name", name="uq_region_country_name"),
@@ -33,7 +33,7 @@ class RegionModel(AbstractBaseModel):
     id = Column(Integer, primary_key=True, index=True, comment="ID региона")
     country_id = Column(
         Integer,
-        ForeignKey("country.id", ondelete="CASCADE"),
+        ForeignKey("loc_country.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
         comment="ID страны",
@@ -54,7 +54,7 @@ class RegionModel(AbstractBaseModel):
     )
 
     # Обратная связь
-    country = relationship("CountryModel", back_populates="regions", lazy="selectin", foreign_keys=[country_id])
-    cities = relationship("CityModel", back_populates="region", lazy="selectin", cascade="all, delete-orphan")
+    country = relationship("CountryModel", back_populates="regions", lazy="noload", foreign_keys=[country_id])
+    cities = relationship("CityModel", back_populates="region", lazy="noload", cascade="all, delete-orphan")
 
     # Классовые методы

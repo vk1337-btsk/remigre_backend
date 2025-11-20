@@ -11,6 +11,8 @@ class MetricOnlyListSchema(BaseSchema):
     id: int
     slug: str
     name: str
+    description: Optional[str]
+
 
 
 class MetricDetailSchema(BaseSchema):
@@ -23,5 +25,4 @@ class MetricDetailSchema(BaseSchema):
     source_name: Optional[str]
     source_url: Optional[str]
     type_data: TypeDataEnum
-    unit_format: str
     is_active: bool

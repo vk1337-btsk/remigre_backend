@@ -25,7 +25,7 @@ def create_contry():
 
     # --------------- Создаю таблицу со странами "country" ---------------
     op.create_table(
-        "country",
+        "loc_country",
         # Идентификатор страны
         sa.Column("id", sa.Integer(), primary_key=True, nullable=False, comment="ID страны"),
         sa.Column("name", sa.String(length=255), nullable=False, comment="Название страны"),
@@ -73,63 +73,63 @@ def create_contry():
         comment="Таблица стран и данными о них",
     )
     # Создаю индексы
-    op.create_index("ix_country_id", "country", ["id"])
-    op.create_index("ix_country_name", "country", ["name"])
-    op.create_index("ix_country_name_eng", "country", ["name_eng"])
-    op.create_index("ix_country_iso_alpha_2", "country", ["iso_alpha_2"])
-    op.create_index("ix_country_iso_alpha_3", "country", ["iso_alpha_3"])
-    op.create_index("ix_country_iso_digits", "country", ["iso_digits"])
-    op.create_index("ix_country_latitude", "country", ["latitude"])
-    op.create_index("ix_country_longitude", "country", ["longitude"])
+    op.create_index("ix_country_id", "loc_country", ["id"])
+    op.create_index("ix_country_name", "loc_country", ["name"])
+    op.create_index("ix_country_name_eng", "loc_country", ["name_eng"])
+    op.create_index("ix_country_iso_alpha_2", "loc_country", ["iso_alpha_2"])
+    op.create_index("ix_country_iso_alpha_3", "loc_country", ["iso_alpha_3"])
+    op.create_index("ix_country_iso_digits", "loc_country", ["iso_digits"])
+    op.create_index("ix_country_latitude", "loc_country", ["latitude"])
+    op.create_index("ix_country_longitude", "loc_country", ["longitude"])
     # Создаю уникальные ограничения
-    op.create_unique_constraint("uq_country_name", "country", ["name"])
-    op.create_unique_constraint("uq_country_name_eng", "country", ["name_eng"])
-    op.create_unique_constraint("uq_country_iso_alpha_2", "country", ["iso_alpha_2"])
-    op.create_unique_constraint("uq_country_iso_alpha_3", "country", ["iso_alpha_3"])
-    op.create_unique_constraint("uq_country_iso_digits", "country", ["iso_digits"])
-    op.create_unique_constraint("uq_country_coordinates", "country", ["latitude", "longitude"])
+    op.create_unique_constraint("uq_country_name", "loc_country", ["name"])
+    op.create_unique_constraint("uq_country_name_eng", "loc_country", ["name_eng"])
+    op.create_unique_constraint("uq_country_iso_alpha_2", "loc_country", ["iso_alpha_2"])
+    op.create_unique_constraint("uq_country_iso_alpha_3", "loc_country", ["iso_alpha_3"])
+    op.create_unique_constraint("uq_country_iso_digits", "loc_country", ["iso_digits"])
+    op.create_unique_constraint("uq_country_coordinates", "loc_country", ["latitude", "longitude"])
     # Создаю проверки
-    op.create_check_constraint("ck_country_longitude_range", "country", "longitude BETWEEN -180 AND 180")
-    op.create_check_constraint("ck_country_latitude_range", "country", "latitude BETWEEN -90 AND 90")
+    op.create_check_constraint("ck_country_longitude_range", "loc_country", "longitude BETWEEN -180 AND 180")
+    op.create_check_constraint("ck_country_latitude_range", "loc_country", "latitude BETWEEN -90 AND 90")
 
 
 def delete_country():
 
     # Удаляю индексы, проверки для таблицы городов country
-    op.drop_index("ix_country_id", table_name="country")
-    op.drop_index("ix_country_iso_alpha_2", table_name="country")
-    op.drop_index("ix_country_iso_alpha_3", table_name="country")
-    op.drop_index("ix_country_iso_digits", table_name="country")
-    op.drop_index("ix_country_name", table_name="country")
-    op.drop_index("ix_country_name_eng", table_name="country")
-    op.drop_index("ix_country_latitude", table_name="country")
-    op.drop_index("ix_country_longitude", table_name="country")
+    op.drop_index("ix_country_id", table_name="loc_country")
+    op.drop_index("ix_country_iso_alpha_2", table_name="loc_country")
+    op.drop_index("ix_country_iso_alpha_3", table_name="loc_country")
+    op.drop_index("ix_country_iso_digits", table_name="loc_country")
+    op.drop_index("ix_country_name", table_name="loc_country")
+    op.drop_index("ix_country_name_eng", table_name="loc_country")
+    op.drop_index("ix_country_latitude", table_name="loc_country")
+    op.drop_index("ix_country_longitude", table_name="loc_country")
 
-    op.drop_constraint("uq_country_name", "country", type_="unique")
-    op.drop_constraint("uq_country_name_eng", "country", type_="unique")
-    op.drop_constraint("uq_country_iso_alpha_2", "country", type_="unique")
-    op.drop_constraint("uq_country_iso_alpha_3", "country", type_="unique")
-    op.drop_constraint("uq_country_iso_digits", "country", type_="unique")
-    op.drop_constraint("uq_country_coordinates", "country", type_="unique")
+    op.drop_constraint("uq_country_name", "loc_country", type_="unique")
+    op.drop_constraint("uq_country_name_eng", "loc_country", type_="unique")
+    op.drop_constraint("uq_country_iso_alpha_2", "loc_country", type_="unique")
+    op.drop_constraint("uq_country_iso_alpha_3", "loc_country", type_="unique")
+    op.drop_constraint("uq_country_iso_digits", "loc_country", type_="unique")
+    op.drop_constraint("uq_country_coordinates", "loc_country", type_="unique")
 
-    op.drop_constraint("ck_country_longitude_range", "country", type_="check")
-    op.drop_constraint("ck_country_latitude_range", "country", type_="check")
+    op.drop_constraint("ck_country_longitude_range", "loc_country", type_="check")
+    op.drop_constraint("ck_country_latitude_range", "loc_country", type_="check")
 
     # Удаляю country
-    op.drop_table("country")
+    op.drop_table("loc_country")
 
 
 def create_region():
 
     # --------------- Создаю таблицу со регионами "region" ---------------
     op.create_table(
-        "region",
+        "loc_region",
         # Идентификатор региона/страны
         sa.Column("id", sa.Integer(), primary_key=True, comment="ID региона"),
         sa.Column(
             "country_id",
             sa.Integer(),
-            sa.ForeignKey("country.id", ondelete="CASCADE"),
+            sa.ForeignKey("loc_country.id", ondelete="CASCADE"),
             nullable=False,
             comment="ID страны",
         ),
@@ -163,50 +163,50 @@ def create_region():
         comment="Таблица регионов и данными о них",
     )
     # Создаю индексы
-    op.create_index("ix_region_id", "region", ["id"])
-    op.create_index("ix_region_country_id", "region", ["country_id"])
-    op.create_index("ix_region_name", "region", ["name"])
-    op.create_index("ix_region_name_eng", "region", ["name_eng"])
+    op.create_index("ix_region_id", "loc_region", ["id"])
+    op.create_index("ix_region_country_id", "loc_region", ["country_id"])
+    op.create_index("ix_region_name", "loc_region", ["name"])
+    op.create_index("ix_region_name_eng", "loc_region", ["name_eng"])
     # Создаю ограничения
-    op.create_unique_constraint("uq_region_name", "region", ["name"])
-    op.create_unique_constraint("uq_region_name_eng", "region", ["name_eng"])
-    op.create_unique_constraint("uq_region_country_name", "region", ["country_id", "name"])
-    op.create_unique_constraint("uq_region_country_name_eng", "region", ["country_id", "name_eng"])
+    op.create_unique_constraint("uq_region_name", "loc_region", ["name"])
+    op.create_unique_constraint("uq_region_name_eng", "loc_region", ["name_eng"])
+    op.create_unique_constraint("uq_region_country_name", "loc_region", ["country_id", "name"])
+    op.create_unique_constraint("uq_region_country_name_eng", "loc_region", ["country_id", "name_eng"])
 
 
 def delete_region():
 
     # Удаляю индексы, проверки для таблицы городов region
-    op.drop_index("ix_region_id", table_name="region")
-    op.drop_index("ix_region_country_id", table_name="region")
-    op.drop_index("ix_region_name", table_name="region")
-    op.drop_index("ix_region_name_eng", table_name="region")
+    op.drop_index("ix_region_id", table_name="loc_region")
+    op.drop_index("ix_region_country_id", table_name="loc_region")
+    op.drop_index("ix_region_name", table_name="loc_region")
+    op.drop_index("ix_region_name_eng", table_name="loc_region")
 
-    op.drop_constraint("uq_region_name", "region", type_="unique")
-    op.drop_constraint("uq_region_name_eng", "region", type_="unique")
-    op.drop_constraint("uq_region_country_name", "region", type_="unique")
-    op.drop_constraint("uq_region_country_name_eng", "region", type_="unique")
+    op.drop_constraint("uq_region_name", "loc_region", type_="unique")
+    op.drop_constraint("uq_region_name_eng", "loc_region", type_="unique")
+    op.drop_constraint("uq_region_country_name", "loc_region", type_="unique")
+    op.drop_constraint("uq_region_country_name_eng", "loc_region", type_="unique")
 
     # Удаляю таблицу region
-    op.drop_table("region")
+    op.drop_table("loc_region")
 
 
 def create_city():
 
     # --------------- Создаю таблицу с городами "city" ---------------
     op.create_table(
-        "city",
+        "loc_city",
         # Идентификатор города
         sa.Column("id", sa.Integer(), primary_key=True, comment="ID города"),
         sa.Column(
-            "country_id",
+            "loc_country_id",
             sa.Integer(),
             sa.ForeignKey("country.id", ondelete="CASCADE"),
             nullable=False,
             comment="ID страны",
         ),
         sa.Column(
-            "region_id",
+            "loc_region_id",
             sa.Integer(),
             sa.ForeignKey("region.id", ondelete="CASCADE"),
             nullable=True,
@@ -246,23 +246,23 @@ def create_city():
         comment="Таблица городов и данными о них",
     )
     # Создаю индексы
-    op.create_index("ix_city_id", "city", ["id"])
-    op.create_index("ix_city_country_id", "city", ["country_id"])
-    op.create_index("ix_city_region_id", "city", ["region_id"])
-    op.create_index("ix_city_name", "city", ["name"])
-    op.create_index("ix_city_name_eng", "city", ["name_eng"])
-    op.create_index("ix_city_latitude", "city", ["latitude"])
-    op.create_index("ix_city_longitude", "city", ["longitude"])
+    op.create_index("ix_city_id", "loc_city", ["id"])
+    op.create_index("ix_city_country_id", "loc_city", ["country_id"])
+    op.create_index("ix_city_region_id", "loc_city", ["region_id"])
+    op.create_index("ix_city_name", "loc_city", ["name"])
+    op.create_index("ix_city_name_eng", "loc_city", ["name_eng"])
+    op.create_index("ix_city_latitude", "loc_city", ["latitude"])
+    op.create_index("ix_city_longitude", "loc_city", ["longitude"])
     # Создаю уникальные ограничения
-    op.create_unique_constraint("uq_city_country_name", "city", ["country_id", "name"])
-    op.create_unique_constraint("uq_city_country_name_eng", "city", ["country_id", "name_eng"])
-    op.create_unique_constraint("uq_city_coordinates", "city", ["latitude", "longitude"])
+    op.create_unique_constraint("uq_city_country_name", "loc_city", ["country_id", "name"])
+    op.create_unique_constraint("uq_city_country_name_eng", "loc_city", ["country_id", "name_eng"])
+    op.create_unique_constraint("uq_city_coordinates", "loc_city", ["latitude", "longitude"])
     # Создаю проверки
-    op.create_check_constraint("ck_city_latitude_range", "city", "latitude BETWEEN -90 AND 90")
-    op.create_check_constraint("ck_city_longitude_range", "city", "longitude BETWEEN -180 AND 180")
+    op.create_check_constraint("ck_city_latitude_range", "loc_city", "latitude BETWEEN -90 AND 90")
+    op.create_check_constraint("ck_city_longitude_range", "loc_city", "longitude BETWEEN -180 AND 180")
     op.create_index(
         "uq_city_capital_per_country",
-        "city",
+        "loc_city",
         ["country_id"],
         postgresql_where=sa.text("is_capital IS TRUE"),
     )
@@ -270,23 +270,23 @@ def create_city():
 
 def delete_city():
     # Удаляю индексы таблицы городов city
-    op.drop_index("uq_city_capital_per_country", table_name="city")
-    op.drop_index("ix_city_longitude", table_name="city")
-    op.drop_index("ix_city_latitude", table_name="city")
-    op.drop_index("ix_city_name_eng", table_name="city")
-    op.drop_index("ix_city_name", table_name="city")
-    op.drop_index("ix_city_region_id", table_name="city")
-    op.drop_index("ix_city_country_id", table_name="city")
-    op.drop_index("ix_city_id", table_name="city")
+    op.drop_index("uq_city_capital_per_country", table_name="loc_city")
+    op.drop_index("ix_city_longitude", table_name="loc_city")
+    op.drop_index("ix_city_latitude", table_name="loc_city")
+    op.drop_index("ix_city_name_eng", table_name="loc_city")
+    op.drop_index("ix_city_name", table_name="loc_city")
+    op.drop_index("ix_city_region_id", table_name="loc_city")
+    op.drop_index("ix_city_country_id", table_name="loc_city")
+    op.drop_index("ix_city_id", table_name="loc_city")
 
-    op.drop_constraint("uq_city_coordinates", "city", type_="unique")
-    op.drop_constraint("uq_city_country_name_eng", "city", type_="unique")
-    op.drop_constraint("uq_city_country_name", "city", type_="unique")
-    op.drop_constraint("ck_city_latitude_range", "city", type_="check")
-    op.drop_constraint("ck_city_longitude_range", "city", type_="check")
+    op.drop_constraint("uq_city_coordinates", "loc_city", type_="unique")
+    op.drop_constraint("uq_city_country_name_eng", "loc_city", type_="unique")
+    op.drop_constraint("uq_city_country_name", "loc_city", type_="unique")
+    op.drop_constraint("ck_city_latitude_range", "loc_city", type_="check")
+    op.drop_constraint("ck_city_longitude_range", "loc_city", type_="check")
 
     # Удаляю таблицу city
-    op.drop_table("city")
+    op.drop_table("loc_city")
 
 
 def upgrade() -> None:

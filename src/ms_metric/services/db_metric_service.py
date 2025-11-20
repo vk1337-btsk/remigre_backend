@@ -5,8 +5,13 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.database import GetFilteredListDTO
 from src.ms_location.models import CountryModel
-from src.ms_metric.dto import MetricGetDTO, MetricOptionsDTO
-from src.ms_metric.models import MetricDataModel, MetricModel, MetricPeriodModel
+from src.ms_metric.dto import MetricInfoGetDTO, MetricInfoOptionsDTO
+from src.ms_metric.models import (
+    MetricDataModel,
+    MetricInfoModel,
+    MetricPeriodModel,
+    MetricSeriesModel,
+)
 from src.ms_metric.schemas import MetricDetailSchema
 
 
@@ -22,13 +27,13 @@ class DB_MetricService:
 
     async def get_all_metrics(self) -> list[MetricDetailSchema]:
 
-        result = await MetricModel.get_all_filtered(
+        result = await MetricInfoModel.get_all_filtered(
             self._async_session, dto_filters=GetFilteredListDTO(filters={"is_active": True})
         )
         return [MetricDetailSchema.model_validate(metric) for metric in result]
 
     async def get_metric(self, slug: str) -> MetricDetailSchema:
-        result = await MetricModel.get(self._async_session, dto_get=MetricGetDTO(slug=slug))
+        result = await MetricInfoModel.get(self._async_session, dto_get=MetricInfoGetDTO(slug=slug))
         return MetricDetailSchema.model_validate(result)
 
     async def get_all_metrics_country_by_id(self, country_id: int):
@@ -37,7 +42,7 @@ class DB_MetricService:
         """
 
         # Сначала находим все metric_id для страны
-        stmt = select(MetricDataModel.metric_id).where(MetricDataModel.country_id == country_id).distinct()
+        stmt = select(MetricDataModel.series_id).where(MetricDataModel.country_id == country_id).distinct()
         result = await self._async_session.execute(stmt)
         metric_ids = [row[0] for row in result.fetchall()]
 
@@ -45,8 +50,8 @@ class DB_MetricService:
             return []
 
         # Теперь достаём метрики через MetricModel.get_all_filtered
-        dto_options = MetricOptionsDTO(with_period=True, with_data=True)
-        metrics = await MetricModel.get_all_filtered(
+        dto_options = MetricInfoOptionsDTO(with_period=True, with_data=True)
+        metrics = await MetricSeriesModel.get_all_filtered(
             session=self._async_session,
             dto_filters=None,  # можно будет добавить фильтры если понадобится
             dto_options=dto_options,
@@ -77,8 +82,8 @@ class DB_MetricService:
             return []
 
         # Подгружаем сами метрики через MetricModel с DTO
-        dto_options = MetricOptionsDTO(with_period=True, with_data=True)
-        metrics = await MetricModel.get_all_filtered(
+        dto_options = MetricInfoOptionsDTO(with_period=True, with_data=True)
+        metrics = await MetricSeriesModel.get_all_filtered(
             session=self._async_session,
             dto_filters=None,
             dto_options=dto_options,
@@ -86,3 +91,8 @@ class DB_MetricService:
         )
 
         return metrics
+
+    #
+    #
+    # ===================== Операции, связывающие метрики и страны =====================
+    # async def 

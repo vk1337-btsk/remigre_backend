@@ -38,7 +38,7 @@ class DatabaseConfig(BaseConfig):
     db_host: str = Field(alias="DB_HOST", title="Хост/IP БД")
     db_port: int = Field(alias="DB_PORT", title="Порт БД")
 
-    db_echo: bool = False
+    db_echo: bool = Field(alias="DB_ECHO", title="Логгирование операций с БД")
 
     @field_validator("db_echo", mode="after")
     def get_db_echo(cls, v, info):

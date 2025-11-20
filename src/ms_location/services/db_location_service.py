@@ -38,7 +38,8 @@ class DB_LocationService:
     async def get_country_by_part_name(self, part_name: str):
 
         result = await CountryModel.get_all_filtered(
-            self._async_session, dto_filters=GetFilteredListDTO(like_filters={"name": part_name})
+            self._async_session,
+            dto_filters=GetFilteredListDTO(or_like_filters={"name": part_name, "name_eng": part_name}),
         )
         return [CountryDetailSchema.from_orm_with_geojson(country) for country in result]
 
@@ -69,7 +70,8 @@ class DB_LocationService:
     async def get_city_by_part_name(self, part_name: str):
 
         result = await CityModel.get_all_filtered(
-            self._async_session, dto_filters=GetFilteredListDTO(like_filters={"name": part_name})
+            self._async_session,
+            dto_filters=GetFilteredListDTO(or_like_filters={"name": part_name, "name_eng": part_name}),
         )
         return [CityDetailSchema.model_validate(country) for country in result]
 

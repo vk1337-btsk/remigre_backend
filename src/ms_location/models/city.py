@@ -13,6 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     func,
+    or_,
     select,
     text,
 )
@@ -37,7 +38,7 @@ logger = logging.getLogger(__name__)
 class CityModel(AbstractBaseModel):
     """Модель с данными о городе"""
 
-    __tablename__ = "city"
+    __tablename__ = "loc_city"
 
     __table_args__ = (
         UniqueConstraint("country_id", "name", name="uq_city_country_name"),
@@ -65,10 +66,10 @@ class CityModel(AbstractBaseModel):
     # Идентификатор города
     id = Column(Integer, primary_key=True, index=True, comment="ID города")
     country_id = Column(
-        Integer, ForeignKey("country.id", ondelete="CASCADE"), nullable=False, index=True, comment="ID страны"
+        Integer, ForeignKey("loc_country.id", ondelete="CASCADE"), nullable=False, index=True, comment="ID страны"
     )
     region_id = Column(
-        Integer, ForeignKey("region.id", ondelete="CASCADE"), nullable=True, index=True, comment="ID региона"
+        Integer, ForeignKey("loc_region.id", ondelete="CASCADE"), nullable=True, index=True, comment="ID региона"
     )
     name = Column(String(255), nullable=False, index=True, comment="Название города")
     name_eng = Column(String(255), nullable=False, index=True, comment="Название города ENG")
@@ -94,9 +95,9 @@ class CityModel(AbstractBaseModel):
     is_active = Column(Boolean, nullable=False, default=True, server_default=text("true"), comment="Отображение города")
 
     # Обратная связь
-    country = relationship("CountryModel", back_populates="cities", lazy="selectin", foreign_keys=[country_id])
-    region = relationship("RegionModel", back_populates="cities", lazy="selectin", foreign_keys=[region_id])
-    data_entries = relationship("MetricDataModel", back_populates="city", lazy="selectin", cascade="all, delete-orphan")
+    country = relationship("CountryModel", back_populates="cities", lazy="noload", foreign_keys=[country_id])
+    region = relationship("RegionModel", back_populates="cities", lazy="noload", foreign_keys=[region_id])
+    data_entries = relationship("MetricDataModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
 
     # ======== Классовые методы ========
     @classmethod
@@ -188,7 +189,14 @@ class CityModel(AbstractBaseModel):
         elif dto_get.country_id and dto_get.name_eng:
             stmt = stmt.where(and_(cls.country_id == dto_get.country_id, cls.name_eng == dto_get.name_eng))
         elif dto_get.coordinates:
-            stmt = stmt.where(and_(cls.coordinates == dto_get.coordinates))
+            latitude, longitude = dto_get.coordinates.split(",")
+            latitude, longitude = float(latitude), float(longitude)
+            stmt = stmt.where(
+                or_(
+                    and_(cls.latitude == latitude, cls.longitude == longitude),
+                    and_(cls.latitude == longitude, cls.longitude == latitude),
+                )
+            )
         else:
             ValueError(f"Не хватает данных для поиска уникального города: {dto_get}")
 
@@ -232,7 +240,18 @@ class CityModel(AbstractBaseModel):
             for key, value in like_filters.items():
                 column = getattr(cls, key, None)
                 if column is not None:
-                    stmt = stmt.where(func.lower(column).like(f"%{value.lower()}%"))
+                    stmt = stmt.where(func.lower(column).like(func.lower(f"{value}%")))
+
+            # OR LIKE-фильтрация
+            or_like_filters = dto_filters.or_like_filters or {}
+            if or_like_filters:
+                conditions = []
+                for key, value in or_like_filters.items():
+                    column = getattr(cls, key, None)
+                    if column is not None:
+                        conditions.append(column.ilike(f"{value}%"))
+                if conditions:
+                    stmt = stmt.where(or_(*conditions))
 
             # IN-фильтрация
             in_filters = dto_filters.in_filters or {}

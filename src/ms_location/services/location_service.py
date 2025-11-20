@@ -8,6 +8,7 @@ from src.core.database.db_config import get_async_session
 from src.ms_location.schemas.schemas import (
     CityDetailSchema,
     CountryDetailSchema,
+    CountryListSchema,
     LocationOnlyListSchema,
     SearchLocationSchema,
 )
@@ -40,10 +41,10 @@ class LocationService:
     #
     #
     # ============ Работа со странами ============
-    async def get_countries(self, only_list: bool) -> Union[list[LocationOnlyListSchema], list[CountryDetailSchema]]:
+    async def get_countries(self, only_list: bool) -> Union[list[CountryListSchema], list[CountryDetailSchema]]:
 
         if only_list:
-            result = [LocationOnlyListSchema.model_validate(el) for el in await self.service_db.get_all_countries()]
+            result = [CountryListSchema.model_validate(el) for el in await self.service_db.get_all_countries()]
             return result
         else:
             result = await self.service_db.get_all_countries()

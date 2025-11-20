@@ -1,15 +1,11 @@
-#
-from src.ms_location.models.city import CityModel
-from src.ms_location.models.country import CountryModel
-from src.ms_location.models.region import RegionModel
-
-#
+from src.ms_location.models import CityModel, CountryModel, RegionModel
 from src.ms_main.models.info import InfoModel
-
-#
-from src.ms_metric.models.data import MetricDataModel
-from src.ms_metric.models.metric import MetricModel
-from src.ms_metric.models.period import MetricPeriodModel
+from src.ms_metric.models import (
+    MetricDataModel,
+    MetricInfoModel,
+    MetricPeriodModel,
+    MetricSeriesModel,
+)
 
 
 # Здесь ничего не нужно делать — просто импортируем, чтобы SQLAlchemy успел зарегистрировать их мапперы
@@ -19,7 +15,8 @@ __all__ = [
     "CityModel",
     "RegionModel",
     "MetricDataModel",
-    "MetricModel",
     "MetricPeriodModel",
+    "MetricSeriesModel",
+    "MetricInfoModel",
     "InfoModel",
 ]

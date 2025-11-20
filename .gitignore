@@ -5,3 +5,6 @@
 poetry.lock
 
 __pycache__
+
+logs/
+data/

@@ -1,3 +1,5 @@
+"""Скрипт заполняет таблицу стран"""
+
 import asyncio
 import json
 import logging

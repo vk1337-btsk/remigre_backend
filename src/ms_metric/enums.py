@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class TypeDataEnum(Enum):
+class TypeDataEnum(str,Enum):
     """Типы данных метрик."""
 
     INT = "int"
@@ -11,7 +11,7 @@ class TypeDataEnum(Enum):
     BOOL = "bool"
 
 
-class PeriodTypeEnum(Enum):
+class PeriodTypeEnum(str, Enum):
     """Временой промежуток за который делается метрика."""
 
     ONE_TIME = "one_time"  # Единожды
@@ -22,17 +22,10 @@ class PeriodTypeEnum(Enum):
     NONE = "none"  # Без интервала
 
 
-class CategoryMetricEnum(Enum):
+class CategoryMetricEnum(str, Enum):
 
     ECONOMY = "economy"
     SECURITY = "security"
-    QUALITY_OF_LIFE = "quality of life"
+    QUALITY_OF_LIFE = "quality_of_life"
     EMIGRATION = "emigration"
-    UNCATEGORIZED = "uncategorized"
-
-
-class TypeLocation(Enum):
-
-    CITY = "city"
-    REGION = "region"
-    COUNTRY = "country"
+    UNCATEGORIZED = "uncategorized"  # Без категории

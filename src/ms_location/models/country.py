@@ -13,6 +13,7 @@ from sqlalchemy import (
     UniqueConstraint,
     and_,
     func,
+    or_,
     select,
     text,
 )
@@ -35,7 +36,7 @@ logger = logging.getLogger(__name__)
 class CountryModel(AbstractBaseModel):
     """Модель с данными о стране"""
 
-    __tablename__ = "country"
+    __tablename__ = "loc_country"
     __table_args__ = (
         UniqueConstraint("latitude", "longitude", name="uq_country_coordinates"),
         # Ограничение: latitude от -90 до 90, longitude от -180 до 180
@@ -75,10 +76,10 @@ class CountryModel(AbstractBaseModel):
     is_active = Column(Boolean, nullable=False, default=True, server_default=text("true"), comment="Отображение страны")
 
     # Обратная связь
-    regions = relationship("RegionModel", back_populates="country", lazy="select", cascade="all, delete-orphan")
-    cities = relationship("CityModel", back_populates="country", lazy="select", cascade="all, delete-orphan")
+    regions = relationship("RegionModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
+    cities = relationship("CityModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     data_entries = relationship(
-        "MetricDataModel", back_populates="country", lazy="select", cascade="all, delete-orphan"
+        "MetricDataModel", back_populates="country", lazy="noload", cascade="all, delete-orphan"
     )
 
     @hybrid_property
@@ -228,7 +229,18 @@ class CountryModel(AbstractBaseModel):
             for key, value in like_filters.items():
                 column = getattr(cls, key, None)
                 if column is not None:
-                    stmt = stmt.where(func.lower(column).like(f"%{value.lower()}%"))
+                    stmt = stmt.where(func.lower(column).like(func.lower(f"{value}%")))
+
+            # OR LIKE-фильтрация
+            or_like_filters = dto_filters.or_like_filters or {}
+            if or_like_filters:
+                conditions = []
+                for key, value in or_like_filters.items():
+                    column = getattr(cls, key, None)
+                    if column is not None:
+                        conditions.append(column.ilike(f"{value}%"))
+                if conditions:
+                    stmt = stmt.where(or_(*conditions))
 
             # IN-фильтрация
             in_filters = dto_filters.in_filters or {}

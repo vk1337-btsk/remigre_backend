@@ -1,7 +1,8 @@
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query
 
+from ms_metric.schemas.body import GetGraphics_Body
 from src.ms_metric.schemas import MetricDetailSchema, MetricOnlyListSchema
 from src.ms_metric.services import MetricService
 
@@ -35,7 +36,7 @@ async def get_metric(
 
 @router.get(
     "/filters",
-    summary="Получить страны и города по фильтрам метрик",
+    summary="НЕ РЕАЛИЗОВАНО. Получить страны и города по фильтрам метрик",
     description="Получаем список городов и стран по фильтрам метрик",
     deprecated=True,
 )
@@ -52,7 +53,7 @@ async def get_county_and_city_by_filter(
 
 @router.get(
     "/country/{country_id}",
-    summary="Получить данные метрик о стране по id",
+    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о стране по id",
     description="Получаем подробную информацию всех метрик по стране",
 )
 async def get_all_metrics_country_by_id(
@@ -64,7 +65,7 @@ async def get_all_metrics_country_by_id(
 
 @router.get(
     "/country/{country_name}",
-    summary="Получить данные метрик о стране по названию",
+    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о стране по названию",
     description="Получаем подробную информацию всех метрик по стране",
 )
 async def get_all_metrics_country_by_name(
@@ -76,7 +77,7 @@ async def get_all_metrics_country_by_name(
 
 @router.get(
     "/city/{city_id}",
-    summary="Получить данные метрик о стране по id",
+    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о стране по id",
     description="Получаем подробную информацию всех метрик по городу",
     deprecated=True,
 )
@@ -86,11 +87,26 @@ async def get_all_metrics_city_by_id(city_id: int = Path(title="ID города"
 
 @router.get(
     "/city/{country_name}_{city_name}",
-    summary="Получить данные метрик о городе по названию страны и города",
+    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о городе по названию страны и города",
     description="Получаем подробную информацию всех метрик по городу",
-    deprecated=True
+    deprecated=True,
 )
 async def get_all_metrics_city_by_name(
+    county_name: str = Path(title="Название страны"),
+    city_name: str = Path(title="Название города"),
+):
+    pass
+
+
+# --------------- Эндпоинты графиков --------------
+@router.post(
+    "/country/graphs",
+    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о городе по названию страны и города",
+    description="Получаем подробную информацию всех метрик по городу",
+    deprecated=True,
+)
+async def get_graphs(
+    body: GetGraphics_Body = Body(title="Название страны"),
     county_name: str = Path(title="Название страны"),
     city_name: str = Path(title="Название города"),
 ):
