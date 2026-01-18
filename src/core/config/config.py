@@ -45,11 +45,11 @@ class DatabaseConfig(BaseConfig):
     """Настройки переменных окружения базы данных."""
 
     # Настройки БД
-    db_user: str = Field(alias="DB_USER", title="Имя пользователя БД")
-    db_password: SecretStr = Field(alias="DB_PASSWORD", title="Пароль пользователя БД")
-    db_name: str = Field(alias="DB_NAME", title="Названия БД")
-    db_host: str = Field(alias="DB_HOST", title="Хост/IP БД")
-    db_port: int = Field(alias="DB_PORT", title="Порт БД")
+    db_user: str = Field(alias="POSTGRES_USER", title="Имя пользователя БД")
+    db_password: SecretStr = Field(alias="POSTGRES_PASSWORD", title="Пароль пользователя БД")
+    db_name: str = Field(alias="POSTGRES_DB", title="Названия БД")
+    db_host: str = Field(alias="POSTGRES_HOST", title="Хост/IP БД")
+    db_port: int = Field(alias="POSTGRES_PORT", title="Порт БД")
 
     db_echo: bool = Field(default=False, alias="DB_ECHO", title="Логгирование операций с БД")
 

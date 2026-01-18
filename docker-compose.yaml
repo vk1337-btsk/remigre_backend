@@ -1,31 +1,30 @@
+version: "3.9"
+
 services:
   backend:
-    build:
-      context: .
-      dockerfile: docker/Dockerfile
-    env_file:
-      - .env.docker
-    environment:
-      ENV_TYPE_FILE: ".env.docker"
+    build: .
+    container_name: trava_backend
+    restart: always
     ports:
       - "8000:8000"
+    environment:
+      - DATABASE_URL=postgresql://postgres:postgres@db:5432/trava
     depends_on:
       - db
-    volumes:
-      - ./dumps:/dumps
-    restart: unless-stopped
 
   db:
     image: postgis/postgis:17-3.5
+    container_name: trava_postgis
+    restart: always
     environment:
-      - TZ=Europe/Moscow
-    env_file:
-      - .env.docker
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: trava
+    volumes:
+      - pg_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
-    restart: unless-stopped
 
 volumes:
-  postgres_data:
+  pg_data:
+    external: true

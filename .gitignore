@@ -12,3 +12,5 @@ dumps/
 
 
 .env.local
+
+secrets.txt
