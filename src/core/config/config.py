@@ -1,14 +1,5 @@
-import os
-from typing import Optional
-
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
-
-
-ENV_FILE = ".env.local"  # default
-
-if os.getenv("ENV_TYPE") == "docker":
-    ENV_FILE = ".env.docker"
 
 
 class BaseConfig(BaseSettings):
@@ -18,7 +9,7 @@ class BaseConfig(BaseSettings):
     debug: bool = Field(default=False, alias="DEBUG", title="Флаг, указывающий на project/developer")
 
     model_config = SettingsConfigDict(
-        env_file=os.getenv("ENV_TYPE_FILE", ".env.local"),  # файл по умолчанию
+        env_file=".env",
         env_file_encoding="utf-8",
         extra="ignore",
     )
@@ -83,7 +74,6 @@ class CORSConfig(BaseConfig):
 
 class FastAPIConfig(BaseConfig):
     """Настройки для запуска проекта"""
-
 
     host: str = Field(default="0.0.0.0", alias="FASTAPI_HOST", title="Host FastAPI")
     port: int = Field(default=8000, alias="FASTAPI_PORT", title="Port FastAPI")
