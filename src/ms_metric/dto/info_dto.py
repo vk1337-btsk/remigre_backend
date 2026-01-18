@@ -11,6 +11,8 @@ class MetricInfoOptionsDTO(BaseModel):
     """DTO для подгрузки связей индикатора"""
 
     with_series: bool = False
+    with_period: bool = False
+    with_data: bool = False
 
 
 class MetricInfoGetDTO(BaseModel):

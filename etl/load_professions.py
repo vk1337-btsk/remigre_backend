@@ -12,7 +12,7 @@ from pathlib import Path
 import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database.db_config import AsyncSessionLocal
+from src.core.database.database import AsyncSessionLocal
 from src.ms_data_directory.models.professions import ProfessionsModel
 
 

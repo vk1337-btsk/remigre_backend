@@ -21,7 +21,11 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database import AbstractBaseModel, GetFilteredListDTO
+from src.core.database import (
+    AbstractBaseModel,
+    CreatedUpdatedAtMixin,
+    GetFilteredListDTO,
+)
 from src.ms_location.dto import (
     CountryCreateDTO,
     CountryGetDTO,
@@ -33,7 +37,7 @@ from src.ms_location.dto import (
 logger = logging.getLogger(__name__)
 
 
-class CountryModel(AbstractBaseModel):
+class CountryModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель с данными о стране"""
 
     __tablename__ = "loc_country"
@@ -43,7 +47,7 @@ class CountryModel(AbstractBaseModel):
         CheckConstraint("latitude BETWEEN -90 AND 90", name="ck_country_latitude_range"),
         CheckConstraint("longitude BETWEEN -180 AND 180", name="ck_country_longitude_range"),
         #
-        {"comment": "Таблица стран"},
+        {"comment": "Страны"},
     )
 
     # Идентификатор страны

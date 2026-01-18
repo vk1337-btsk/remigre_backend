@@ -25,7 +25,7 @@ def upgrade() -> None:
     # Создаю таблицу с данными сайта
     op.create_table(
         "info",
-        sa.Column("id", sa.Integer(), nullable=False, comment="ID записи"),
+        sa.Column("id", sa.Integer(), nullable=False, autoincrement=True, comment="ID записи"),
         sa.Column("slug", sa.String(), nullable=False, comment="Название раздела"),
         sa.Column("description", sa.Text(), nullable=False, comment="Описание раздела"),
         sa.Column(

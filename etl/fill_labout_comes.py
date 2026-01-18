@@ -1,28 +1,30 @@
+# etl/fill_labout_comes.py
 """
 Заполняет метрики по
-Labour market outcomes of immigrants - Employment, unemployment, and participation rates by sex
-сайт: https://data-explorer.oecd.org/vis?df[ds]=DisseminateFinalDMZ&df[id]=DSD_MIG%40DF_MIG_EMP_EDU&df[ag]=OECD.ELS.IMD&dq=..A.....&to[TIME_PERIOD]=false&vw=tb&pd=2020%2C2024
+Labour market outcomes of immigrants - Employment rates by educational attainment
+сайт: https://data-explorer.oecd.org/vis?df[ds]=DisseminateFinalDMZ&df[id]=DSD_MIG%40DF_MIG_EMP_EDU&df[ag]=OECD.ELS.IMD&dq=..A.....&pd=2000%2C2024&to[TIME_PERIOD]=false
 файл: OECD.ELS.IMD,DSD_MIG@DF_MIG_EMP_EDU,+..A.....
 """
 
 import asyncio
 import csv
 from pathlib import Path
-from typing import Dict, List, Literal, Sequence, Union, cast
+from typing import Dict, List, Literal, cast
 
 import pandas as pd
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from etl.utils import (
+    compare_country_list_by_column,
+    get_or_create_metric_cached,
+    get_or_create_period_cached,
+    get_or_create_series_cached,
+    validate_csv_structure,
+)
 from src.core.config.logging import setup_logger_to_file
-from src.core.database.db_config import AsyncSessionLocal
-from src.core.utils.country_companator import compare_country_list_by_column
+from src.core.database.database import AsyncSessionLocal
 from src.ms_location.dto import CountryGetDTO
 from src.ms_location.models import CountryModel
-from src.ms_metric.dto import (
-    MetricInfoCreateDTO,
-    MetricPeriodCreateDTO,
-    MetricSeriesCreateDTO,
-)
 from src.ms_metric.enums import CategoryMetricEnum, PeriodTypeEnum, TypeDataEnum
 from src.ms_metric.models import (
     MetricDataModel,
@@ -102,107 +104,67 @@ COUNTRY_MAP = {
         "ESP",
         "SWE",
     ],
+    "EU27": [
+        "AUT",
+        "BEL",
+        "BGR",
+        "HRV",
+        "CYP",
+        "CZE",
+        "DNK",
+        "EST",
+        "FIN",
+        "FRA",
+        "DEU",
+        "GRC",
+        "HUN",
+        "IRL",
+        "ITA",
+        "LVA",
+        "LTU",
+        "LUX",
+        "MLT",
+        "NLD",
+        "POL",
+        "PRT",
+        "ROU",
+        "SVK",
+        "SVN",
+        "ESP",
+        "SWE",
+    ],
+    "EU28": [
+        "AUT",
+        "BEL",
+        "BGR",
+        "HRV",
+        "CYP",
+        "CZE",
+        "DNK",
+        "EST",
+        "FIN",
+        "FRA",
+        "DEU",
+        "GRC",
+        "HUN",
+        "IRL",
+        "ITA",
+        "LVA",
+        "LTU",
+        "LUX",
+        "MLT",
+        "NLD",
+        "POL",
+        "PRT",
+        "ROU",
+        "SVK",
+        "SVN",
+        "ESP",
+        "SWE",
+        "GBR",
+    ],
     "AUS": ["AUS"],
 }
-
-
-# ============================================================
-#                    Функции
-# ============================================================
-def validate_csv_structure(header: Union[Sequence[str], List[str]]) -> None:
-    """Проверяет, что все нужные колонки есть в CSV. Если не хватает — бросает ValueError с описанием."""
-
-    header_set = set(col.strip() for col in header)
-    missing = REQUIRED_COLUMNS - header_set
-    extra = header_set - REQUIRED_COLUMNS
-
-    if missing:
-        msg = f"❌ В CSV отсутствуют обязательные колонки: {', '.join(sorted(missing))}"
-        logger.error(msg)
-        raise ValueError(msg)
-
-    if extra:
-        logger.warning(f"⚠️ В CSV найдены лишние колонки (они будут проигнорированы): {', '.join(sorted(extra))}")
-
-    logger.info("✅ Структура CSV проверена — все нужные поля присутствуют.")
-
-
-async def get_or_create_metric_cached(
-    cache: Dict[str, MetricInfoModel],
-    unique_key: str,
-    session: AsyncSession,
-    slug: str,
-    name: str,
-    description: str,
-    category: CategoryMetricEnum,
-    source_name: str,
-    source_url: str,
-    type_data: TypeDataEnum,
-    add_info: dict,
-) -> MetricInfoModel:
-
-    if unique_key in cache:
-        return cache[unique_key]
-
-    metric = await MetricInfoModel.get_or_create(
-        session,
-        MetricInfoCreateDTO(
-            slug=slug,
-            name=name,
-            description=description,
-            category=category,
-            source_name=source_name,
-            source_url=source_url,
-            type_data=type_data,
-            add_info=add_info,
-            is_active=True,
-        ),
-    )
-    cache[unique_key] = metric
-    return metric
-
-
-async def get_or_create_series_cached(
-    cache: Dict[str, MetricSeriesModel],
-    unique_key: str,
-    session: AsyncSession,
-    metric_id: int,
-    add_info: dict,
-) -> MetricSeriesModel:
-
-    if unique_key in cache:
-        return cache[unique_key]
-
-    series = await MetricSeriesModel.get_or_create(
-        session,
-        MetricSeriesCreateDTO(metric_id=metric_id, add_info=add_info, is_active=True),
-    )
-    cache[unique_key] = series
-    return series
-
-
-async def get_or_create_period_cached(
-    cache: Dict[str, MetricPeriodModel],
-    unique_key: str,
-    session: AsyncSession,
-    series_id: int,
-    period_type: PeriodTypeEnum,
-    year: int,
-) -> MetricPeriodModel:
-    if unique_key in cache:
-        return cache[unique_key]
-
-    period = await MetricPeriodModel.get_or_create(
-        session,
-        MetricPeriodCreateDTO(
-            series_id=series_id,
-            period_type=period_type,
-            period_year=year,
-            add_info=None,
-        ),
-    )
-    cache[unique_key] = period
-    return period
 
 
 # ============================================================
@@ -236,7 +198,7 @@ async def import_csv(session: AsyncSession, file_path: Path, batch_size: int = 5
         header = [col.strip().replace("\ufeff", "").replace('"', "").replace("'", "") for col in raw_header]
 
         # === Проверка заголовков ===
-        validate_csv_structure(header)
+        validate_csv_structure(header, REQUIRED_COLUMNS)
 
         # Переходим в начало файла и создаём DictReader с чистыми заголовками
         f.seek(0)
@@ -356,7 +318,7 @@ async def import_csv(session: AsyncSession, file_path: Path, batch_size: int = 5
                     session.add_all(buffer)
                     await session.commit()
                     total_inserted += len(buffer)
-                    logger.info(f"💾 Массовая загрузка — {total_inserted} записей")
+                    # logger.info(f"💾 Массовая загрузка — {total_inserted} записей")
                     buffer.clear()
 
     # Финальный commit оставшихся записей
@@ -364,13 +326,15 @@ async def import_csv(session: AsyncSession, file_path: Path, batch_size: int = 5
         session.add_all(buffer)
         await session.commit()
         total_inserted += len(buffer)
-        logger.info(f"💾 Финальный commit — {total_inserted} записей")
+        # logger.info(f"💾 Финальный commit — {total_inserted} записей")
 
     logger.info(f"\n✅ Импорт завершён. Всего добавлено: {total_inserted} записей.")
 
 
 # ================= Main =================
-async def main(file_path: Path, mode: Literal["check", "import"]):
+async def main(mode: Literal["check", "import"]):
+
+    file_path = Path("data/OECD.ELS.IMD,DSD_MIG@DF_MIG_EMP_EDU,+..A......csv")
 
     async with AsyncSessionLocal() as session:
         if mode == "check":
@@ -386,10 +350,3 @@ async def main(file_path: Path, mode: Literal["check", "import"]):
         elif mode == "import":
             await import_csv(session=session, file_path=file_path)
             return
-
-
-if __name__ == "__main__":
-    raise RuntimeError("Этот скрипт нельзя запускать без причин!")
-
-    path = Path("data/OECD.ELS.IMD,DSD_MIG@DF_MIG_EMP_EDU,+..A......csv")
-    asyncio.run(main(file_path=path, mode="import"))

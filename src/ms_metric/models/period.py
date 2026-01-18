@@ -9,8 +9,6 @@ from sqlalchemy import (
     Enum,
     ForeignKey,
     Integer,
-    String,
-    UniqueConstraint,
     and_,
     func,
     select,
@@ -20,7 +18,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database import AbstractBaseModel, GetFilteredListDTO
+from src.core.database import AbstractBaseModel, CreatedUpdatedAtMixin, GetFilteredListDTO
 from src.ms_metric.dto import (
     MetricPeriodCreateDTO,
     MetricPeriodGetDTO,
@@ -33,14 +31,14 @@ from src.ms_metric.enums import PeriodTypeEnum
 logger = logging.getLogger(__name__)
 
 
-class MetricPeriodModel(AbstractBaseModel):
+class MetricPeriodModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель периодов метрик"""
 
     __tablename__ = "metric_period"
 
     __table_args__ = (
         # Ограничение: год или не указан, или больше 2000
-        CheckConstraint("(period_year IS NULL) OR (period_year >= 2000)", name="ck_period_year_nonnegative"),
+        CheckConstraint("(period_year IS NULL) OR (period_year >= 0)", name="ck_period_year_nonnegative"),
         # Ограничение: месяц или не указан, или между 1 и 12
         CheckConstraint("(period_month IS NULL) OR (period_month BETWEEN 1 AND 12)", name="ck_period_month_range"),
         # Ограничение: неделя или не указана, или между 1 и 55
@@ -50,9 +48,11 @@ class MetricPeriodModel(AbstractBaseModel):
             "(date_start IS NULL OR date_end IS NULL) OR (date_start <= date_end)",
             name="ck_metric_period_date_start_lte_end",
         ),
+        # Комментарий
         {"comment": "Периоды измерений метрики"},
     )
 
+    # ID
     id = Column(Integer, primary_key=True, index=True, comment="ID периода")
 
     # Связи

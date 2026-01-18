@@ -7,6 +7,7 @@ from sqlalchemy import (
     Column,
     Float,
     ForeignKey,
+    Index,
     Integer,
     String,
     Text,
@@ -21,9 +22,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database.base_crud_mixin import BaseCRUDMixin
 from src.core.database.base_dto import GetFilteredListDTO
-from src.core.database.base_models import AbstractBaseModel
+from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 from src.ms_location.dto.city_dto import (
     CityCreateDTO,
     CityGetDTO,
@@ -35,12 +35,15 @@ from src.ms_location.dto.city_dto import (
 logger = logging.getLogger(__name__)
 
 
-class CityModel(AbstractBaseModel):
+class CityModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель с данными о городе"""
 
     __tablename__ = "loc_city"
 
     __table_args__ = (
+        # Уникальный индекс
+        Index("uq_city_capital_per_country", "country_id", unique=True, postgresql_where=text("is_capital IS TRUE")),
+        # Уникальное ограничение
         UniqueConstraint("country_id", "name", name="uq_city_country_name"),
         UniqueConstraint("country_id", "name_eng", name="uq_city_country_name_eng"),
         UniqueConstraint("latitude", "longitude", name="uq_city_coordinates"),
@@ -60,7 +63,8 @@ class CityModel(AbstractBaseModel):
             """,
             name="ck_one_capital_per_country",
         ),
-        {"comment": "Таблица городов"},
+        # Partial unique index: одна столица на страну
+        {"comment": "Города"},
     )
 
     # Идентификатор города

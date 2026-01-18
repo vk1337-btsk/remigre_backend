@@ -19,7 +19,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # === Импорт моделей/enum'ов вашего проекта ===
-from src.core.database.db_config import AsyncSessionLocal  # fileciteturn0file0
+from src.core.database.database import AsyncSessionLocal  # fileciteturn0file0
 from src.ms_location.country import CountryModel  # fileciteturn0file4
 from src.ms_metric.data import MetricDataModel  # fileciteturn0file1
 from src.ms_metric.enums import (  # noqa: F401

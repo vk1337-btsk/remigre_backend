@@ -4,14 +4,15 @@ import asyncio
 import csv
 import logging
 
-# Импорт зависимых моделей, чтобы SQLAlchemy смогла построить все связи
-from src.ms_metric.models.data import MetricDataModel
+from src.core.database.database import get_async_session_factory
+from src.ms_location.dto import CountryGetDTO, CountryUpdateDTO
 from src.ms_location.models.city import CityModel
+from src.ms_location.models.country import CountryModel
 from src.ms_location.models.region import RegionModel
 
-from src.core.database.db_config import get_async_session
-from src.ms_location.dto import CountryGetDTO, CountryUpdateDTO
-from src.ms_location.models.country import CountryModel
+# Импорт зависимых моделей, чтобы SQLAlchemy смогла построить все связи
+from src.ms_metric.models.data import MetricDataModel
+
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -31,7 +32,7 @@ async def main():
             if alpha2:
                 iso_map[alpha2] = {"iso_alpha_3": alpha3, "iso_digits": numeric}
 
-    async for session in get_async_session():
+    async for session in get_async_session_factory():
         # Проходим по всем странам в БД
         for alpha2, codes in iso_map.items():
             dto_get = CountryGetDTO(iso_alpha_2=alpha2)

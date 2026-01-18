@@ -9,7 +9,7 @@ import httpx
 from geoalchemy2.shape import from_shape
 from shapely.geometry import shape
 
-from src.core.database.db_config import AsyncSessionLocal
+from src.core.database.database import AsyncSessionLocal
 from src.ms_location.dto import CountryGetDTO
 from src.ms_location.models.country import CountryModel
 from src.ms_metric.models.data import MetricDataModel

@@ -1,14 +1,27 @@
+import os
 from typing import Optional
 
 from pydantic import Field, SecretStr, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
+ENV_FILE = ".env.local"  # default
+
+if os.getenv("ENV_TYPE") == "docker":
+    ENV_FILE = ".env.docker"
+
+
 class BaseConfig(BaseSettings):
     """Базовый класс для конфигурации переменных окружения проекта."""
 
     # Флаг, указывающий на project/developer
-    debug: bool = Field(alias="DEBUG", title="Флаг, указывающий на project/developer")
+    debug: bool = Field(default=False, alias="DEBUG", title="Флаг, указывающий на project/developer")
+
+    model_config = SettingsConfigDict(
+        env_file=os.getenv("ENV_TYPE_FILE", ".env.local"),  # файл по умолчанию
+        env_file_encoding="utf-8",
+        extra="ignore",
+    )
 
     @model_validator(mode="before")
     def set_project_or_develop_config(cls, values) -> dict:
@@ -38,7 +51,7 @@ class DatabaseConfig(BaseConfig):
     db_host: str = Field(alias="DB_HOST", title="Хост/IP БД")
     db_port: int = Field(alias="DB_PORT", title="Порт БД")
 
-    db_echo: bool = Field(alias="DB_ECHO", title="Логгирование операций с БД")
+    db_echo: bool = Field(default=False, alias="DB_ECHO", title="Логгирование операций с БД")
 
     @field_validator("db_echo", mode="after")
     def get_db_echo(cls, v, info):
@@ -62,18 +75,18 @@ class DatabaseConfig(BaseConfig):
 class CORSConfig(BaseConfig):
     """Класс для настроек CORS."""
 
-    # Настройки CORS
-    allow_origins: list[str] = Field(alias="ALLOW_ORIGINS", title="Разрешённые источники")
-    allow_credentials: bool = Field(alias="ALLOW_CREDENTIALS", title="Разрешено ли передавать учётные данные")
-    allow_methods: list[str] = Field(alias="ALLOW_METHODS", title="Разрешённые методы")
-    allow_headers: list[str] = Field(alias="ALLOW_HEADERS", title="Разрешённые заголовки")
+    allow_origins: list[str] = Field(default=["*"], alias="ALLOW_ORIGINS", title="Разрешённые источники")
+    allow_credentials: bool = Field(default=True, alias="ALLOW_CREDENTIALS", title="Передача учётных данных")
+    allow_methods: list[str] = Field(default=["*"], alias="ALLOW_METHODS", title="Разрешённые методы")
+    allow_headers: list[str] = Field(default=["*"], alias="ALLOW_HEADERS", title="Разрешённые заголовки")
 
 
 class FastAPIConfig(BaseConfig):
+    """Настройки для запуска проекта"""
 
-    # Настройки FastAPI для project/developer
-    host: str = Field(alias="FASTAPI_HOST", title="Host FastAPI")
-    port: int = Field(alias="FASTAPI_PORT", title="Port FastAPI")
+
+    host: str = Field(default="0.0.0.0", alias="FASTAPI_HOST", title="Host FastAPI")
+    port: int = Field(default=8000, alias="FASTAPI_PORT", title="Port FastAPI")
 
 
 class MainConfig(BaseConfig):

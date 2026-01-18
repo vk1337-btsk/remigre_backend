@@ -16,7 +16,7 @@ from fastapi.openapi.docs import get_swagger_ui_html
 from sqladmin import Admin
 
 import src.core.database.models_init
-from src.core.database.db_config import async_engine
+from src.core.database.database import async_engine
 from src.ms_location.router import router as location_router
 from src.ms_main.admin.views import InfoAdminView
 from src.ms_main.router import router as info_router
@@ -58,6 +58,7 @@ app.include_router(metric_router)
 
 # --------------- Логгируем необходимую информацию --------------
 logger.info(f"[Trava]: Приложение запущено в режиме {'DEBUG' if settings.debug else 'PROJECT'}")
+
 
 # --------------- Запуск приложения --------------
 if __name__ == "__main__":

@@ -18,7 +18,11 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database import AbstractBaseModel, GetFilteredListDTO
+from src.core.database import (
+    AbstractBaseModel,
+    CreatedUpdatedAtMixin,
+    GetFilteredListDTO,
+)
 from src.ms_metric.dto import (
     MetricDataCreateDTO,
     MetricDataGetDTO,
@@ -30,7 +34,7 @@ from src.ms_metric.dto import (
 logger = logging.getLogger(__name__)
 
 
-class MetricDataModel(AbstractBaseModel):
+class MetricDataModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель, отражающая сырые данные метрик."""
 
     __tablename__ = "metric_data"
@@ -60,9 +64,11 @@ class MetricDataModel(AbstractBaseModel):
             """,
             name="ck_metric_data_only_one_value_filled",
         ),
+        # Комментарий
         {"comment": "Данные метрики"},
     )
 
+    # ID
     id = Column(Integer, primary_key=True, index=True, comment="ID значения")
 
     # Связи
@@ -87,7 +93,7 @@ class MetricDataModel(AbstractBaseModel):
     value_range_max = Column(Float, nullable=True, index=True, comment="Значение в формате MAX RANGE")
     value_bool = Column(Boolean, nullable=True, comment="Значение в формате BOOL")
 
-    # Дополнительная информация
+    # Дополнительно
     add_info = Column(JSONB, nullable=True, comment="Дополнительная информация")
 
     # ======== Обратная связь ========

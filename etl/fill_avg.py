@@ -10,7 +10,7 @@ from pathlib import Path
 from typing import Dict, List, Sequence, Union, cast
 
 from src.core.config.logging import setup_logger_to_file
-from src.core.database.db_config import AsyncSessionLocal
+from src.core.database.database import AsyncSessionLocal
 from src.ms_location.dto import CountryGetDTO
 from src.ms_location.models import CountryModel
 from src.ms_metric.dto import (

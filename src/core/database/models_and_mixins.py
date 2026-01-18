@@ -1,6 +1,6 @@
 from datetime import datetime, timezone
 
-from sqlalchemy import Column, DateTime, Integer, text
+from sqlalchemy import Column, DateTime, text
 from sqlalchemy.orm import DeclarativeBase
 
 
@@ -10,7 +10,12 @@ class AbstractBaseModel(DeclarativeBase):
 
     __abstract__ = True
 
-    id = Column(Integer, primary_key=True)
+    def to_dict(self):
+        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}
+
+
+class CreatedUpdatedAtMixin:
+    """Миксин для полей created_at и updated_at"""
 
     created_at = Column(
         DateTime(timezone=True),
@@ -29,9 +34,3 @@ class AbstractBaseModel(DeclarativeBase):
         nullable=False,
         comment="Дата обновления",
     )
-
-    def __repr__(self):
-        return f"<{self.__class__.__name__}(id={self.id})>"
-
-    def to_dict(self):
-        return {k: v for k, v in self.__dict__.items() if not k.startswith("_")}

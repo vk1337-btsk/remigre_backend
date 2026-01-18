@@ -12,21 +12,20 @@ from sqlalchemy import (
 )
 from sqlalchemy.orm import relationship
 
-from src.core.database.base_models import AbstractBaseModel
+from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class RegionModel(AbstractBaseModel):
+class RegionModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель с данными о регионе"""
 
     __tablename__ = "loc_region"
 
     __table_args__ = (
-        UniqueConstraint("country_id", "name", name="uq_region_country_name"),
-        UniqueConstraint("country_id", "name_eng", name="uq_region_country_name_eng"),
-        {"comment": "Таблица регионов"},
+        # Коммментарий
+        {"comment": "Регионы"},
     )
 
     # Идентификатор региона/страны
@@ -38,8 +37,8 @@ class RegionModel(AbstractBaseModel):
         index=True,
         comment="ID страны",
     )
-    name = Column(String(255), nullable=False, index=True, unique=True, comment="Название региона")
-    name_eng = Column(String(255), nullable=False, index=True, unique=True, comment="Название региона ENG")
+    name = Column(String(255), nullable=False, index=True, comment="Название региона")
+    name_eng = Column(String(255), nullable=False, index=True, comment="Название региона ENG")
 
     # Характеристика региона
     description = Column(Text, nullable=True, comment="Описание региона")

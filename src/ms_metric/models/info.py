@@ -20,7 +20,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database import AbstractBaseModel, GetFilteredListDTO
+from src.core.database import AbstractBaseModel, CreatedUpdatedAtMixin, GetFilteredListDTO
 from src.ms_metric.dto import (
     MetricInfoCreateDTO,
     MetricInfoGetDTO,
@@ -33,7 +33,7 @@ from src.ms_metric.enums import CategoryMetricEnum, TypeDataEnum
 logger = logging.getLogger(__name__)
 
 
-class MetricInfoModel(AbstractBaseModel):
+class MetricInfoModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель метрики"""
 
     __tablename__ = "metric_info"
@@ -41,18 +41,20 @@ class MetricInfoModel(AbstractBaseModel):
     __table_args__ = (
         # Уникальное ограничение: slug
         UniqueConstraint("slug", name="uq_metric_info_slug"),
+        # Комментарий
         {"comment": "Индикатор метрики"},
     )
 
+    # ID
     id = Column(Integer, primary_key=True, comment="ID")
 
-    # Информация о метрике
+    # Основные данные
     slug = Column(String(255), nullable=False, index=True, comment="Slug (текстовой идентификатор)")
     name = Column(String(255), nullable=False, comment="Название")
     description = Column(Text, nullable=True, comment="Описание")
     category = Column(Enum(CategoryMetricEnum, name="category_metric_enum"), nullable=False, comment="Категория")
 
-    # Информация об источнике метрики
+    # Характеристики метрики и его источник
     source_name = Column(String(255), nullable=True, comment="Источник")
     source_url = Column(String(512), nullable=True, comment="URL источника")
     type_data = Column(Enum(TypeDataEnum, name="type_data_enum"), nullable=False, comment="Тип данных")

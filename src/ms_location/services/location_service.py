@@ -1,12 +1,14 @@
+import asyncio
 import logging
-from typing import Optional, Union
+from typing import Any, Optional, Union
 
 from fastapi import Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.database.db_config import get_async_session
-from src.ms_location.schemas.schemas import (
+from src.core.database.database import get_async_session_factory
+from src.ms_location.schemas import (
     CityDetailSchema,
+    CoordinatesLocationsForMap,
     CountryDetailSchema,
     CountryListSchema,
     LocationOnlyListSchema,
@@ -20,10 +22,10 @@ logger = logging.getLogger(__name__)
 
 class LocationService:
 
-    def __init__(self, session: AsyncSession = Depends(get_async_session)):
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession] = Depends(get_async_session_factory)):
         """Инициализация основных параметров."""
 
-        self.service_db = DB_LocationService(session)
+        self.service_db = DB_LocationService(session_factory)
 
     #
     #
@@ -37,6 +39,15 @@ class LocationService:
         result_city = [LocationOnlyListSchema.model_validate(el) for el in result_city]
 
         return SearchLocationSchema(country=result_country, cities=result_city)
+
+    async def get_coordinates_for_map(self) -> CoordinatesLocationsForMap:
+        """ """
+
+        countries, cities = await asyncio.gather(
+            self.service_db.get_coordinates_countries(),
+            self.service_db.get_coordinates_cities(),
+        )
+        return CoordinatesLocationsForMap(countries=countries, cities=cities)
 
     #
     #

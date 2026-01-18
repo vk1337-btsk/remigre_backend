@@ -1,7 +1,7 @@
 from enum import Enum
 
 
-class TypeDataEnum(str,Enum):
+class TypeDataEnum(str, Enum):
     """Типы данных метрик."""
 
     INT = "int"
@@ -29,3 +29,9 @@ class CategoryMetricEnum(str, Enum):
     QUALITY_OF_LIFE = "quality_of_life"
     EMIGRATION = "emigration"
     UNCATEGORIZED = "uncategorized"  # Без категории
+
+
+class FiltredMetricGenderEnum(str, Enum):
+    """ауцпопцу"""
+
+    pass

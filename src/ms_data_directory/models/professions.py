@@ -18,10 +18,10 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database.base_models import AbstractBaseModel
+from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
-class ProfessionsModel(AbstractBaseModel):
+class ProfessionsModel(AbstractBaseModel, CreatedUpdatedAtMixin):
 
     __tablename__ = "data_professions"
 
@@ -34,6 +34,6 @@ class ProfessionsModel(AbstractBaseModel):
     name_eng = Column(String(255), nullable=False, comment="Название ENG")
     description = Column(Text, nullable=True, comment="Описание")
 
-    # Дополнительные данные
+    # Дополнительно
     is_active = Column(Boolean, nullable=False, default=True, server_default=text("true"), comment="Флаг активности")
     add_info = Column(JSONB, nullable=True, comment="Доп. информация")

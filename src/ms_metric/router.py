@@ -2,8 +2,11 @@ from typing import Union
 
 from fastapi import APIRouter, Body, Depends, Path, Query
 
-from ms_metric.schemas.body import GetGraphics_Body
-from src.ms_metric.schemas import MetricDetailSchema, MetricOnlyListSchema
+from src.ms_metric.schemas import (
+    GetGraphics_Body,
+    MetricDetailSchema,
+    MetricOnlyListSchema,
+)
 from src.ms_metric.services import MetricService
 
 
@@ -53,7 +56,7 @@ async def get_county_and_city_by_filter(
 
 @router.get(
     "/country/{country_id}",
-    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о стране по id",
+    summary="Получить список всех доступных метрик о стране по её id",
     description="Получаем подробную информацию всех метрик по стране",
 )
 async def get_all_metrics_country_by_id(
@@ -64,37 +67,12 @@ async def get_all_metrics_country_by_id(
 
 
 @router.get(
-    "/country/{country_name}",
-    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о стране по названию",
-    description="Получаем подробную информацию всех метрик по стране",
-)
-async def get_all_metrics_country_by_name(
-    country_name: str = Path(title="Название страны"),
-    service: MetricService = Depends(),
-):
-    return await service.get_all_metrics_for_country(country_name=country_name)
-
-
-@router.get(
     "/city/{city_id}",
-    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о стране по id",
+    summary="НЕ РЕАЛИЗОВАНО. Получить список всех доступных метрик о городе по её id",
     description="Получаем подробную информацию всех метрик по городу",
     deprecated=True,
 )
 async def get_all_metrics_city_by_id(city_id: int = Path(title="ID города")):
-    pass
-
-
-@router.get(
-    "/city/{country_name}_{city_name}",
-    summary="НЕ РЕАЛИЗОВАНО. Получить данные метрик о городе по названию страны и города",
-    description="Получаем подробную информацию всех метрик по городу",
-    deprecated=True,
-)
-async def get_all_metrics_city_by_name(
-    county_name: str = Path(title="Название страны"),
-    city_name: str = Path(title="Название города"),
-):
     pass
 
 

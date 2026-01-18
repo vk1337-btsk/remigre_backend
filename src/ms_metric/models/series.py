@@ -17,7 +17,7 @@ from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database import AbstractBaseModel, GetFilteredListDTO
+from src.core.database import AbstractBaseModel, CreatedUpdatedAtMixin, GetFilteredListDTO
 from src.ms_metric.dto import (
     MetricSeriesCreateDTO,
     MetricSeriesGetDTO,
@@ -29,13 +29,17 @@ from src.ms_metric.dto import (
 logger = logging.getLogger(__name__)
 
 
-class MetricSeriesModel(AbstractBaseModel):
+class MetricSeriesModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель серии метрики"""
 
     __tablename__ = "metric_series"
 
-    __table_args__ = ({"comment": "Серия измерений метрики"},)
+    __table_args__ = (
+        # Комментарий
+        {"comment": "Серия измерений метрики"},
+    )
 
+    # ID
     id = Column(Integer, primary_key=True, index=True, comment="ID")
 
     # Связи

@@ -2,13 +2,13 @@ import logging
 
 from sqlalchemy import Column, Integer, String, Text
 
-from src.core.database.base_models import AbstractBaseModel
+from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
 logger = logging.getLogger(__name__)
 
 
-class InfoModel(AbstractBaseModel):
+class InfoModel(AbstractBaseModel, CreatedUpdatedAtMixin):
 
     __tablename__ = "info"
 

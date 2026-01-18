@@ -2,19 +2,19 @@ import logging
 from typing import Optional, Union
 
 from fastapi import Depends, HTTPException
-from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.database.db_config import get_async_session
+from src.core.database.database import get_async_session_factory
 from src.ms_metric.schemas.schemas import MetricDetailSchema, MetricOnlyListSchema
 from src.ms_metric.services.db_metric_service import DB_MetricService
 
 
 class MetricService:
 
-    def __init__(self, session: AsyncSession = Depends(get_async_session)):
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession] = Depends(get_async_session_factory)):
         """Инициализация основных параметров."""
 
-        self.service_db = DB_MetricService(session)
+        self.service_db = DB_MetricService(session_factory)
 
     async def get_all_metrics(
         self,
@@ -37,14 +37,8 @@ class MetricService:
 
     async def get_all_metrics_for_country(
         self,
-        country_id: Optional[int] = None,
-        country_name: Optional[str] = None,
+        country_id: int,
         only_list: Optional[bool] = True,
     ):
-
-        if country_id:
-            result = await self.service_db.get_all_metrics_country_by_id(country_id)
-            return result
-        elif country_name:
-            result = await self.service_db.get_all_metrics_country_by_name(country_name)
-            return result
+        result = await self.service_db.get_all_metrics_country_by_id(country_id)
+        return result

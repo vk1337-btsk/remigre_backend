@@ -8,10 +8,11 @@ import csv
 from pathlib import Path
 from typing import Dict, Set
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database.db_config import AsyncSessionLocal  # ваш AsyncSession
+from src.core.database.database import AsyncSessionLocal  # ваш AsyncSession
+
 
 CSV_PATH = Path("data/EAR_4MTH_SEX_OCU_CUR_NB_A-filtered-2025-11-01.csv")
 

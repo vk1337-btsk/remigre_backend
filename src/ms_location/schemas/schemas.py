@@ -1,7 +1,6 @@
-from typing import Optional
+from typing import List, Literal, Optional, Tuple, Union
 
-from geoalchemy2.shape import to_shape
-from pydantic import Field, field_validator
+from pydantic import BaseModel, Field, field_validator
 from shapely.geometry import mapping
 from shapely.wkb import loads
 
@@ -86,3 +85,22 @@ class CityDetailSchema(BaseSchema):
     language: Optional[str]
     climate: Optional[str]
     description: Optional[str]
+
+
+# ======================================================================================================================
+class CoordinatesSchema(BaseModel):
+    """Схема с координатами локаций (стран и городов для карты)"""
+
+    id: int
+    name: str
+    type: Literal["Point", "Polygon", "MultiPolygon", "Feature"] = Field(
+        default="Feature", title="Тип передаваемого GeoJSON"
+    )
+    coordinates: Union[List[Tuple[float, float]], List[List[Tuple[float, float]]]]
+
+
+class CoordinatesLocationsForMap(BaseModel):
+    """Схема с координатами локаций (стран и городов для карты)"""
+
+    countries: list[CoordinatesSchema]
+    cities: list[CoordinatesSchema]

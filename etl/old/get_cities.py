@@ -10,7 +10,7 @@ from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database.db_config import AsyncSessionLocal
+from src.core.database.database import AsyncSessionLocal
 from src.core.database.models_init import *
 from src.ms_location.dto.city_dto import CityCreateDTO
 

@@ -7,7 +7,7 @@ import src.core.database.models_init
 from alembic import context
 from alembic.script import ScriptDirectory
 from src.core.config import settings
-from src.core.database.base_models import AbstractBaseModel
+from src.core.database.models_and_mixins import AbstractBaseModel
 
 
 # Определяю используемые переменные из config
@@ -18,10 +18,10 @@ DB_URL: str = settings.db.url_sync.get_secret_value()  # type:ignore
 config = context.config
 
 
-script = ScriptDirectory.from_config(config)
+# script = ScriptDirectory.from_config(config)
 
-for rev in script.walk_revisions():
-    print(rev.revision, rev.doc)
+# for rev in script.walk_revisions():
+#     print(rev.revision, rev.doc)
 
 
 # Установка строки подключения к БД вручную
@@ -57,7 +57,7 @@ def run_migrations_offline() -> None:
         version_table_branch_label="branch_label",
         include_schemas=True,
         compare_type=True,
-        render_as_batch=True,
+        render_as_batch=False,
     )
 
     with context.begin_transaction():
@@ -69,8 +69,8 @@ def run_migrations_online() -> None:
 
     In this scenario we need to create an Engine
     and associate a connection with the context.
-
     """
+
     connectable = engine_from_config(
         config.get_section(config.config_ini_section, {}),
         prefix="sqlalchemy.",
