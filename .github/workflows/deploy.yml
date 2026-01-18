@@ -21,6 +21,7 @@ jobs:
                   key: ${{ secrets.DEPLOY_KEY }}
                   port: 22
                   script: |
-                      cd ~/trava
-                      docker-compose -f docker-compose.yaml pull || true
-                      docker-compose -f docker-compose.yaml up -d --build
+                      cd ~/backend
+                      git pull
+                      docker-compose pull || true
+                      docker-compose up -d --build
