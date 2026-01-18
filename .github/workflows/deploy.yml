@@ -22,5 +22,5 @@ jobs:
                   port: 22
                   script: |
                       cd ~/trava
-                      docker-compose -f docker-compose.yml pull || true
-                      docker-compose -f docker-compose.yml up -d --build
+                      docker-compose -f docker-compose.yaml pull || true
+                      docker-compose -f docker-compose.yaml up -d --build
