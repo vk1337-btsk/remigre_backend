@@ -1,27 +1,25 @@
-name: CI/CD Deploy
+name: Deploy Backend
 
 on:
-    push:
-        branches:
-            - main
+  push:
+    branches:
+      - main
 
 jobs:
-    build-and-deploy:
-        runs-on: ubuntu-latest
+  deploy:
+    runs-on: ubuntu-latest
 
-        steps:
-            - name: Checkout code
-              uses: actions/checkout@v3
+    steps:
+      - uses: actions/checkout@v3
 
-            - name: Deploy to server
-              uses: appleboy/ssh-action@v0.1.6
-              with:
-                  host: ${{ secrets.DEPLOY_HOST }}
-                  username: ${{ secrets.DEPLOY_USER }}
-                  key: ${{ secrets.DEPLOY_KEY }}
-                  port: 22
-                  script: |
-                      cd ~/backend
-                      git pull
-                      docker-compose pull || true
-                      docker-compose up -d --build
+      - name: SSH to server and deploy
+        uses: appleboy/ssh-action@v0.1.6
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd ~/backend
+            git pull
+            docker-compose build
+            docker-compose up -d
