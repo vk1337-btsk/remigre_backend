@@ -34,4 +34,7 @@ class CategoryMetricEnum(str, Enum):
 class FiltredMetricGenderEnum(str, Enum):
     """ауцпопцу"""
 
-    pass
+    TOTAL = "total"
+    FEMALE = "female"
+    MALE = "male"
+    OTHERS = "others"

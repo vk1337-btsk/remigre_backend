@@ -1,9 +1,10 @@
 import logging
 from typing import Union
 
-from fastapi import APIRouter, Depends, Path, Query
+from fastapi import APIRouter, Body, Depends, Path, Query
 
-from src.ms_location.schemas.schemas import (
+from src.ms_location.schemas import (
+    Body_GetCountryOrCityByCoordinates,
     CityDetailSchema,
     CoordinatesLocationsForMap,
     CountryDetailSchema,
@@ -20,7 +21,7 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/location")
 
 
-# --------------- Эндпоинты основных действий  --------------
+# --------------- Эндпоинты общих действий  --------------
 @router.get(
     "/search",
     summary="Поиск по названию страны/города",
@@ -46,12 +47,25 @@ async def get_coordinates_for_map(
     return await service.get_coordinates_for_map()
 
 
-# --------------- Эндпоинты стран --------------
+@router.post(
+    "/map",
+    summary="Получить ID страны или города по его координатам",
+    description="Получаем ID страны или города по его координатам",
+    tags=["Локации - Общее"],
+)
+async def get_city_by_coordinates(
+    body: Body_GetCountryOrCityByCoordinates = Body(),
+    service: LocationService = Depends(),
+) -> int:
+    return await service.get_id_country_or_city_by_coordinates(body)
+
+
+# --------------- Эндпоинты стран и городов --------------
 @router.get(
     "/countries",
     summary="Получить список стран (c основной или детальной информацией)",
     description="Можно получить список стран с базовой информацией, или только список стран для фильтрации",
-    tags=["Локации - Страны"],
+    tags=["Локации - Города и Страны"],
 )
 async def get_all_counties(
     only_list: bool = Query(default=False, title="Вернуть только список стран"),
@@ -61,10 +75,10 @@ async def get_all_counties(
 
 
 @router.get(
-    "/country/id/{country_id}",
+    "/country/{country_id}",
     summary="Получить информацию о стране по id",
     description="Получаем подробную базовую информацию о стране",
-    tags=["Локации - Страны"],
+    tags=["Локации - Города и Страны"],
 )
 async def get_country_by_id(
     country_id: int = Path(gt=1, title="ID страны"),
@@ -74,24 +88,10 @@ async def get_country_by_id(
 
 
 @router.get(
-    "/country/name/{county_name}",
-    summary="Получить информацию о стране по названию ENG",
-    description="Получаем подробную базовую информацию о стране",
-    tags=["Локации - Страны"],
-)
-async def get_country_by_name(
-    county_name: str = Path(title="Название страны"),
-    service: LocationService = Depends(),
-):
-    return await service.get_country(name=county_name)
-
-
-# --------------- Эндпоинты городов --------------
-@router.get(
     "/cities",
     summary="Получить список городов",
     description="Можно получить список городов с базовой информацией, или только список стран для фильтрации",
-    tags=["Локации - Города"],
+    tags=["Локации - Города и Страны"],
 )
 async def get_all_city(
     only_list: bool = Query(default=False, title="Определяет необходимость предоставления базовой информации"),
@@ -101,40 +101,13 @@ async def get_all_city(
 
 
 @router.get(
-    "/city/id/{city_id}",
+    "/city/{city_id}",
     summary="Получить информацию о городе по id",
     description="Получаем подробную базовую информацию о городе",
-    tags=["Локации - Города"],
+    tags=["Локации - Города и Страны"],
 )
 async def get_city_by_id(
     city_id: int = Path(title="ID города"),
     service: LocationService = Depends(),
 ):
     return await service.get_city(id=city_id)
-
-
-@router.get(
-    "/city/name/{county_name}_{city_name}",
-    summary="Получить информацию о городе по названию страны ENG и города ENG",
-    description="Получаем подробную базовую информацию о городе",
-    tags=["Локации - Города"],
-)
-async def get_city_by_country_id_and_eng(
-    county_name: str = Path(title="Название страны"),
-    city_name: str = Path(title="Название города"),
-    service: LocationService = Depends(),
-):
-    return await service.get_city(county_name=county_name, city_name=city_name)
-
-
-@router.get(
-    "/city/coordinates/{coordinates}",
-    summary="Получить информацию о городе по координатам",
-    description="Получаем подробную базовую информацию о городе",
-    tags=["Локации - Города"],
-)
-async def get_city_by_coordinates(
-    coordinates: str = Path(title="Координаты города"),
-    service: LocationService = Depends(),
-):
-    return await service.get_city(coordinates=coordinates)

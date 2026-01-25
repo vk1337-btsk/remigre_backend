@@ -88,6 +88,14 @@ class CityDetailSchema(BaseSchema):
 
 
 # ======================================================================================================================
+GeoJSONCoordinates = Union[
+    Tuple[float, float],  # Point
+    List[Tuple[float, float]],  # LineString
+    List[List[Tuple[float, float]]],  # Polygon
+    List[List[List[Tuple[float, float]]]],  # MultiPolygon
+]
+
+
 class CoordinatesSchema(BaseModel):
     """Схема с координатами локаций (стран и городов для карты)"""
 
@@ -96,7 +104,7 @@ class CoordinatesSchema(BaseModel):
     type: Literal["Point", "Polygon", "MultiPolygon", "Feature"] = Field(
         default="Feature", title="Тип передаваемого GeoJSON"
     )
-    coordinates: Union[List[Tuple[float, float]], List[List[Tuple[float, float]]]]
+    coordinates: GeoJSONCoordinates
 
 
 class CoordinatesLocationsForMap(BaseModel):

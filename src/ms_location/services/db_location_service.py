@@ -1,17 +1,15 @@
 import json
 import logging
-from typing import Optional
+from typing import Optional, Tuple
 
 from fastapi import HTTPException
-from sqlalchemy import select, text
+from sqlalchemy import and_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.core.database.base_dto import GetFilteredListDTO
 from src.ms_location.dto import (
     CityGetDTO,
-    CityOptionsDTO,
     CountryGetDTO,
-    CountryOptionsDTO,
 )
 from src.ms_location.models import CityModel, CountryModel
 from src.ms_location.schemas import (
@@ -30,6 +28,46 @@ class DB_LocationService:
         """Инициализация основных параметров."""
 
         self._session_factory = session_factory
+
+    #
+    #
+    # ============ Операции с локациями ============
+    async def get_country_and_city_id_by_coordinates(self, latitude: float, longitude: float) -> Tuple[int, int]:
+        """Возвращает id города и страны по координатам
+
+        Args:
+            latitude (float): _description_
+            longitude (float): _description_
+
+        Raises:
+            HTTPException: _description_
+
+        Returns:
+            Tuple[int, int]: ID страны, ID города
+        """
+
+        async with self._session_factory() as session:
+            stmt = (
+                select(CityModel.id, CityModel.country_id)
+                .where(
+                    and_(
+                        CityModel.latitude == latitude,
+                        CityModel.longitude == longitude,
+                        CityModel.is_active == True,
+                    )
+                )
+                .limit(1)
+            )
+
+            result = await session.execute(stmt)
+            row = result.first()
+
+            if not row:
+                raise HTTPException(
+                    status_code=404, detail=f"Город с координатами ({latitude}, {longitude}) не найден."
+                )
+
+            return row.country_id, row.id
 
     #
     #
@@ -60,15 +98,6 @@ class DB_LocationService:
             if result:
                 return CountryDetailSchema.from_orm_with_geojson(result)
             raise HTTPException(status_code=404, detail=f"Страна с {county_id=} не найдена")
-
-    async def get_country_by_name(self, name: str) -> CountryDetailSchema:
-
-        async with self._session_factory() as session:
-
-            result = await CountryModel.get(session, dto_get=CountryGetDTO(name=name))
-            if result:
-                return CountryDetailSchema.from_orm_with_geojson(result)
-            raise HTTPException(status_code=404, detail=f"Страна с названием {name=} не найдена")
 
     async def get_coordinates_countries(self, tolerance: float = 0.1) -> list[CoordinatesSchema]:
 
@@ -137,34 +166,6 @@ class DB_LocationService:
             if result:
                 return CityDetailSchema.model_validate(result)
             raise HTTPException(status_code=404, detail=f"Город с {coordinates=} не найдена")
-
-    async def get_city_by_country_and_city_name(self, country_name: str, city_name: str) -> CityDetailSchema:
-        """Возвращает город по названию страны и города."""
-
-        async with self._session_factory() as session:
-            # 1. Проверим страну
-            country = await CountryModel.get(session, CountryGetDTO(name_eng=country_name))
-            if not country:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Страна '{country_name}' не найдена",
-                )
-            country = CountryDetailSchema.model_validate(country)
-
-            # 2. Проверим город
-            city = await CityModel.get(
-                session,
-                CityGetDTO(country_id=country.id, name=city_name),
-                dto_options=CityOptionsDTO(with_country=True, with_region=True),
-            )
-            if not city:
-                raise HTTPException(
-                    status_code=404,
-                    detail=f"Город '{city_name}' в стране '{country_name}' не найден",
-                )
-
-            # 3. Преобразуем в schema
-            return CityDetailSchema.model_validate(city, from_attributes=True)
 
     async def get_coordinates_cities(self) -> list[CoordinatesSchema]:
 

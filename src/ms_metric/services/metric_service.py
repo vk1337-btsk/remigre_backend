@@ -4,18 +4,36 @@ from typing import Optional, Union
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.database.database import get_async_session_factory
-from src.ms_metric.schemas.schemas import MetricDetailSchema, MetricOnlyListSchema
+from src.core.database.database import get_sessionmaker
+from src.ms_metric.enums import CategoryMetricEnum, FiltredMetricGenderEnum
+from src.ms_metric.schemas import FiltersInfo, MetricDetailSchema, MetricOnlyListSchema, Body_GetLocationsByFilters
 from src.ms_metric.services.db_metric_service import DB_MetricService
 
 
 class MetricService:
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession] = Depends(get_async_session_factory)):
+    def __init__(self, session_factory: async_sessionmaker[AsyncSession] = Depends(get_sessionmaker)):
         """Инициализация основных параметров."""
 
         self.service_db = DB_MetricService(session_factory)
 
+    #
+    #
+    # ============ Общие методы ============
+    async def get_filters_info(self):
+        return FiltersInfo(
+            category=[e.value for e in CategoryMetricEnum],
+            gender=[e.value for e in FiltredMetricGenderEnum],
+        )
+
+    async def get_county_and_city_by_filter(self, body: Body_GetLocationsByFilters):
+        """Возвращает список стран и городов по полученным фильтрам"""
+
+        pass
+
+    #
+    #
+    # ============ Работа c локациями ============
     async def get_all_metrics(
         self,
         only_list: bool,
@@ -29,16 +47,22 @@ class MetricService:
             result = await self.service_db.get_all_metrics()
             return result
 
-    async def get_metric(self, slug: str) -> MetricDetailSchema:
+    async def get_metric(self, id: int) -> MetricDetailSchema:
         """Возвращает метрику с детальной информацией."""
 
-        result = await self.service_db.get_metric(slug)
+        result = await self.service_db.get_metric(id)
         return result
 
     async def get_all_metrics_for_country(
         self,
         country_id: int,
-        only_list: Optional[bool] = True,
     ):
         result = await self.service_db.get_all_metrics_country_by_id(country_id)
+        return result
+
+    async def get_all_metrics_for_city(
+        self,
+        city_id: int,
+    ):
+        result = await self.service_db.get_all_metrics_city_by_id(city_id)
         return result

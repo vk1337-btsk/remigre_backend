@@ -1,5 +1,6 @@
 import logging
 
+from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
@@ -33,11 +34,20 @@ class DB_MetricService:
             )
             return [MetricDetailSchema.model_validate(metric) for metric in result]
 
-    async def get_metric(self, slug: str) -> MetricDetailSchema:
+    async def get_metric(self, id: int) -> MetricDetailSchema:
 
         async with self._session_factory() as session:
-            result = await MetricInfoModel.get(session, dto_get=MetricInfoGetDTO(slug=slug))
-            return MetricDetailSchema.model_validate(result)
+            result = await MetricInfoModel.get(session, dto_get=MetricInfoGetDTO(id=id))
+
+        if result is None:
+            raise HTTPException(status_code=404, detail="Метрика не существует")
+
+        return MetricDetailSchema.model_validate(result)
+
+    async def get_all_metrics_city_by_id(self, city_id: int):
+        """Получить все метрики по городу с использованием DTO и классовых методов MetricModel."""
+        
+        pass
 
     async def get_all_metrics_country_by_id(self, country_id: int):
         """Получить все метрики по стране с использованием DTO и классовых методов MetricModel."""

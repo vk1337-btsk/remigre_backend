@@ -1,6 +1,15 @@
 import logging
 import os
 import sys
+import warnings
+
+from cryptography.utils import CryptographyDeprecationWarning
+
+
+warnings.filterwarnings(
+    "ignore",
+    category=CryptographyDeprecationWarning,
+)
 
 
 def setup_logging(debug: bool = False):
@@ -21,6 +30,7 @@ def setup_logging(debug: bool = False):
     logging.getLogger("httpcore").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy").setLevel(logging.WARNING)
     logging.getLogger("sqlalchemy.engine").setLevel(logging.WARNING)
+    logging.getLogger("paramiko").setLevel(logging.WARNING)
 
 
 def setup_logger_to_file(name: str = "import_logger") -> logging.Logger:
