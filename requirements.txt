@@ -1,5 +1,6 @@
 alembic==1.16.2
 asyncpg==0.30.0
+cryptography==46.0.3
 fastapi==0.115.13
 geoalchemy2 ==0.18.0
 httpx==0.28.1
