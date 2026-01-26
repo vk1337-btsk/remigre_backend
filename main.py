@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     # ---------------- STARTUP ----------------
     try:
         db_host = settings.db.db_host
-        db_port = 654
+        db_port = settings.db.db_port
 
         if not settings.is_project:
             logger.info("[Startup] Local mode → starting SSH tunnel")
