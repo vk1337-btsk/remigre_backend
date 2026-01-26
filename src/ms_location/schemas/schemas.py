@@ -1,4 +1,4 @@
-from typing import List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional, Tuple, Union
 
 from pydantic import BaseModel, Field, field_validator
 from shapely.geometry import mapping
@@ -8,6 +8,29 @@ from src.core.schemas.base_schemas import BaseSchema
 from src.ms_location.models.country import CountryModel
 
 
+class LocationMainInfoSchema(BaseSchema):
+    """Список стран/городов"""
+
+    id: int = Field(title="ID объекта локации")
+    type: Literal["country", "city"] = Field(title="Тип объекта локации (страна или город)")
+    name: str = Field(title="Название объекта локации (на русском)")
+    iso_code: str = Field(title="ISO-code alpha 2 страны объекта локации")
+
+
+# ============ Схемы для стран ============
+class CountryShortInfoSchema(BaseSchema):
+    """Краткая информация о стране"""
+
+    id: int
+    name: str
+    iso_alpha_2: str
+    currency: str
+    population: int
+
+    metrics: dict
+
+
+# ============
 class LocationOnlyListSchema(BaseSchema):
 
     id: int
@@ -19,12 +42,6 @@ class CountryListSchema(BaseSchema):
 
     id: int
     name: str
-
-
-class SearchLocationSchema(BaseSchema):
-
-    country: list[LocationOnlyListSchema]
-    cities: list[LocationOnlyListSchema]
 
 
 class CountryDetailSchema(BaseSchema):
@@ -85,30 +102,3 @@ class CityDetailSchema(BaseSchema):
     language: Optional[str]
     climate: Optional[str]
     description: Optional[str]
-
-
-# ======================================================================================================================
-GeoJSONCoordinates = Union[
-    Tuple[float, float],  # Point
-    List[Tuple[float, float]],  # LineString
-    List[List[Tuple[float, float]]],  # Polygon
-    List[List[List[Tuple[float, float]]]],  # MultiPolygon
-]
-
-
-class CoordinatesSchema(BaseModel):
-    """Схема с координатами локаций (стран и городов для карты)"""
-
-    id: int
-    name: str
-    type: Literal["Point", "Polygon", "MultiPolygon", "Feature"] = Field(
-        default="Feature", title="Тип передаваемого GeoJSON"
-    )
-    coordinates: GeoJSONCoordinates
-
-
-class CoordinatesLocationsForMap(BaseModel):
-    """Схема с координатами локаций (стран и городов для карты)"""
-
-    countries: list[CoordinatesSchema]
-    cities: list[CoordinatesSchema]

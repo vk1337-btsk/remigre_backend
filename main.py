@@ -4,7 +4,7 @@ import logging
 from contextlib import asynccontextmanager
 
 from src.core.config import settings, setup_logging
-from src.core.dependency import verify_api_key, verify_docs_auth
+from src.core.dependency import verify_docs_auth
 
 
 setup_logging(settings.is_debug)
@@ -33,7 +33,7 @@ async def lifespan(app: FastAPI):
     # ---------------- STARTUP ----------------
     try:
         db_host = settings.db.db_host
-        db_port = settings.db.db_port
+        db_port = 654
 
         if not settings.is_project:
             logger.info("[Startup] Local mode → starting SSH tunnel")
@@ -44,7 +44,7 @@ async def lifespan(app: FastAPI):
                 ssh_user=settings.ssh.user,
                 ssh_key_path=settings.ssh.key_path,
                 addresses={
-                    "postgresql": ("127.0.0.1", settings.db.db_port),
+                    "postgresql": ("127.0.0.1", 65432),
                 },
             )
 
@@ -122,9 +122,9 @@ app.add_middleware(
 
 
 # --------------- Добавляем маршрутизацию --------------
-app.include_router(info_router, dependencies=[Depends(verify_api_key)])
-app.include_router(location_router, dependencies=[Depends(verify_api_key)])
-app.include_router(metric_router, dependencies=[Depends(verify_api_key)])
+app.include_router(info_router)
+app.include_router(location_router)
+app.include_router(metric_router)
 
 
 # --------------- Логгируем необходимую информацию --------------

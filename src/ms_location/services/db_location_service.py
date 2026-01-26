@@ -1,21 +1,19 @@
 import json
 import logging
-from typing import Optional, Tuple
+from typing import Literal, Optional, Tuple
 
 from fastapi import HTTPException
-from sqlalchemy import and_, select, text
+from sqlalchemy import and_, func, literal, select, text, union_all
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.core.database.base_dto import GetFilteredListDTO
-from src.ms_location.dto import (
-    CityGetDTO,
-    CountryGetDTO,
-)
+from src.ms_location.dto import CityGetDTO, CountryGetDTO
 from src.ms_location.models import CityModel, CountryModel
 from src.ms_location.schemas import (
     CityDetailSchema,
-    CoordinatesSchema,
     CountryDetailSchema,
+    CountryShortInfoSchema,
+    LocationMainInfoSchema,
 )
 
 
@@ -24,71 +22,208 @@ logger = logging.getLogger(__name__)
 
 class DB_LocationService:
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
+    def __init__(
+        self,
+        session: AsyncSession,
+        session_factory: async_sessionmaker[AsyncSession],
+    ):
         """Инициализация основных параметров."""
 
+        self._async_session = session
         self._session_factory = session_factory
 
     #
     #
     # ============ Операции с локациями ============
-    async def get_country_and_city_id_by_coordinates(self, latitude: float, longitude: float) -> Tuple[int, int]:
-        """Возвращает id города и страны по координатам
+    async def get_locations_by_part_word(self, part_word: str) -> list[LocationMainInfoSchema]:
+        """Осуществляет поиск стран и городов по части их названия"""
 
-        Args:
-            latitude (float): _description_
-            longitude (float): _description_
+        search = f"%{part_word}%"
 
-        Raises:
-            HTTPException: _description_
+        # Запрос для стран
+        country_stmt = select(
+            CountryModel.id.label("id"),
+            literal("country").label("type"),
+            CountryModel.name.label("name"),
+            CountryModel.iso_alpha_2.label("iso_code"),
+        ).where(
+            CountryModel.is_active.is_(True),
+            CountryModel.name.ilike(search),
+        )
 
-        Returns:
-            Tuple[int, int]: ID страны, ID города
-        """
+        # Запрос для городов
+        city_stmt = (
+            select(
+                CityModel.id.label("id"),
+                literal("city").label("type"),
+                CityModel.name.label("name"),
+                CountryModel.iso_alpha_2.label("iso_code"),
+            )
+            .join(CountryModel, CityModel.country_id == CountryModel.id)
+            .where(
+                CityModel.is_active.is_(True),
+                CityModel.name.ilike(search),
+            )
+        )
 
-        async with self._session_factory() as session:
+        stmt = union_all(country_stmt, city_stmt)  # Объединяем запросы
+        result = await self._async_session.execute(stmt)  # Получаем результат
+
+        return [LocationMainInfoSchema.model_validate(obj) for obj in result.mappings().all()]
+
+    async def get_coordinates_locations_for_map(self, tolerance: float) -> dict:
+        """Возвращает координаты и границы активных стран для карты"""
+
+        sql = text(
+            """
+            SELECT jsonb_build_object(
+                'countries', jsonb_build_object(
+                    'type', 'FeatureCollection',
+                    'features', countries.features
+                ),
+                'cities', jsonb_build_object(
+                    'type', 'FeatureCollection',
+                    'features', cities.features
+                )
+            ) AS geojson
+            FROM
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'type', 'Feature',
+                        'geometry', ST_AsGeoJSON(
+                            COALESCE(
+                                ST_SimplifyPreserveTopology(c.geometry, :tolerance),
+                                c.geometry
+                            )
+                        )::jsonb,
+                        'properties', jsonb_build_object(
+                            'id', c.id,
+                            'name', c.name
+                        )
+                    )
+                ) AS features
+                FROM loc_country c
+                WHERE c.is_active = TRUE
+                AND c.geometry IS NOT NULL
+                AND ST_IsValid(c.geometry)
+            ) countries,
+            (
+                SELECT jsonb_agg(
+                    jsonb_build_object(
+                        'type', 'Feature',
+                        'geometry', ST_AsGeoJSON(
+                            ST_SetSRID(ST_MakePoint(ci.longitude, ci.latitude), 4326)
+                        )::jsonb,
+                        'properties', jsonb_build_object(
+                            'id', ci.id,
+                            'name', ci.name,
+                            'is_capital', ci.is_capital
+                        )
+                    )
+                ) AS features
+                FROM loc_city ci
+                WHERE ci.is_active = TRUE
+            ) cities;
+            """
+        )
+        result = await self._async_session.execute(sql, {"tolerance": tolerance})
+        return result.scalar_one()
+
+    async def get_location_by_coordinates_from_map(
+        self,
+        location_type: Literal["city", "country"],
+        latitude: float,
+        longitude: float,
+    ):
+        """Осуществляет поиск страны или города по его координатам."""
+
+        point = func.ST_SetSRID(func.ST_MakePoint(longitude, latitude), 4326)
+
+        if location_type == "city":
             stmt = (
-                select(CityModel.id, CityModel.country_id)
+                select(
+                    CityModel.id.label("id"),
+                    CityModel.name.label("name"),
+                    CountryModel.iso_alpha_2.label("iso_code"),
+                )
+                .join(CountryModel, CityModel.country_id == CountryModel.id)
                 .where(
                     and_(
                         CityModel.latitude == latitude,
                         CityModel.longitude == longitude,
-                        CityModel.is_active == True,
+                        CityModel.is_active.is_(True),
                     )
                 )
                 .limit(1)
             )
 
-            result = await session.execute(stmt)
-            row = result.first()
-
-            if not row:
-                raise HTTPException(
-                    status_code=404, detail=f"Город с координатами ({latitude}, {longitude}) не найден."
+        else:  # country
+            stmt = (
+                select(
+                    CountryModel.id.label("id"),
+                    CountryModel.name.label("name"),
+                    CountryModel.iso_alpha_2.label("iso_code"),
                 )
+                .where(
+                    and_(
+                        CountryModel.is_active.is_(True),
+                        func.ST_Contains(CountryModel.geometry, point),
+                    )
+                )
+                .limit(1)
+            )
 
-            return row.country_id, row.id
+        result = await self._async_session.execute(stmt)
+        row = result.mappings().first()
+
+        if not row:
+            raise HTTPException(
+                status_code=404,
+                detail=(
+                    f"{'Город' if location_type == 'city' else 'Страна'} "
+                    f"по координатам ({latitude}, {longitude}) не найден(а)."
+                ),
+            )
+
+        return row
 
     #
     #
     # ============ Работа со странами ============
-    async def get_all_countries(self) -> list[CountryDetailSchema]:
+    async def get_main_info_countries(self) -> list[LocationMainInfoSchema]:
+        """Получает и возвращает из БД список с основной информацией о странах."""
 
-        async with self._session_factory() as session:
-            result = await CountryModel.get_all_filtered(
-                session, dto_filters=GetFilteredListDTO(filters={"is_active": True})
-            )
-            return [CountryDetailSchema.from_orm_with_geojson(country) for country in result]
+        stmt = select(
+            CountryModel.id,
+            CountryModel.name,
+            CountryModel.iso_alpha_2,
+        ).where(
+            CountryModel.is_active == True,
+        )
 
-    async def get_country_by_part_name(self, part_name: str):
+        result = await self._async_session.execute(stmt)
+        rows = result.all()
+        return [LocationMainInfoSchema.model_validate(obj) for obj in rows]
 
-        async with self._session_factory() as session:
+    async def get_short_info_countries(self) -> list[CountryShortInfoSchema]:
+        """Получает и возвращает из БД список с краткой информацией о странах."""
 
-            result = await CountryModel.get_all_filtered(
-                session,
-                dto_filters=GetFilteredListDTO(or_like_filters={"name": part_name, "name_eng": part_name}),
-            )
-            return [CountryDetailSchema.from_orm_with_geojson(country) for country in result]
+        stmt = select(
+            # Параметры страны
+            CountryModel.id,
+            CountryModel.name,
+            CountryModel.iso_alpha_2,
+            # Основные характеристики
+            CountryModel.currency,
+            CountryModel.population,
+        ).where(
+            CountryModel.is_active == True,
+        )
+
+        result = await self._async_session.execute(stmt)
+        rows = result.all()
+        return [CountryShortInfoSchema.model_validate(obj) for obj in rows]
 
     async def get_country_by_id(self, county_id: int) -> CountryDetailSchema:
 
@@ -98,37 +233,6 @@ class DB_LocationService:
             if result:
                 return CountryDetailSchema.from_orm_with_geojson(result)
             raise HTTPException(status_code=404, detail=f"Страна с {county_id=} не найдена")
-
-    async def get_coordinates_countries(self, tolerance: float = 0.1) -> list[CoordinatesSchema]:
-
-        async with self._session_factory() as session:
-
-            sql = text(
-                """
-                SELECT 
-                    id,
-                    name,
-                    ST_AsGeoJSON(ST_SimplifyPreserveTopology(geometry, :tolerance)) AS geometry
-                FROM loc_country
-                WHERE is_active = TRUE
-                """
-            )
-            rows = (await session.execute(sql, {"tolerance": tolerance})).mappings().all()
-
-            coordinates_countries = []
-            for r in rows:
-                if not r["geometry"]:
-                    continue
-                geometry = json.loads(r["geometry"])
-                coordinates_countries.append(
-                    CoordinatesSchema(
-                        id=r["id"],
-                        name=r["name"],
-                        type=geometry["type"],
-                        coordinates=geometry["coordinates"],
-                    )
-                )
-            return coordinates_countries
 
     #
     #
@@ -142,15 +246,6 @@ class DB_LocationService:
             )
             return [CityDetailSchema.model_validate(country) for country in result]
 
-    async def get_city_by_part_name(self, part_name: str):
-
-        async with self._session_factory() as session:
-            result = await CityModel.get_all_filtered(
-                session,
-                dto_filters=GetFilteredListDTO(or_like_filters={"name": part_name, "name_eng": part_name}),
-            )
-            return [CityDetailSchema.model_validate(country) for country in result]
-
     async def get_city_by_id(self, city_id: int) -> CityDetailSchema:
 
         async with self._session_factory() as session:
@@ -158,34 +253,3 @@ class DB_LocationService:
             if result:
                 return CityDetailSchema.model_validate(result)
             raise HTTPException(status_code=404, detail=f"Город с {city_id=} не найдена")
-
-    async def get_city_by_coordinates(self, coordinates: str) -> CityDetailSchema:
-
-        async with self._session_factory() as session:
-            result = await CityModel.get(session, dto_get=CityGetDTO(coordinates=coordinates))
-            if result:
-                return CityDetailSchema.model_validate(result)
-            raise HTTPException(status_code=404, detail=f"Город с {coordinates=} не найдена")
-
-    async def get_coordinates_cities(self) -> list[CoordinatesSchema]:
-
-        async with self._session_factory() as session:
-
-            stmt = select(CityModel.id, CityModel.name, CityModel.latitude, CityModel.longitude).where(
-                CityModel.is_active.is_(True)
-            )
-            result = await session.execute(stmt)
-            rows = result.all()
-
-            coordinates_cities = []
-            for r in rows:
-                data = r._mapping
-                coordinates_cities.append(
-                    CoordinatesSchema(
-                        id=data["id"],
-                        name=data["name"],
-                        type="Point",
-                        coordinates=[data["longitude"], data["latitude"]],
-                    )
-                )
-            return coordinates_cities

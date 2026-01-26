@@ -24,17 +24,17 @@ class PeriodTypeEnum(str, Enum):
 
 class CategoryMetricEnum(str, Enum):
 
-    ECONOMY = "economy"
-    SECURITY = "security"
-    QUALITY_OF_LIFE = "quality_of_life"
-    EMIGRATION = "emigration"
-    UNCATEGORIZED = "uncategorized"  # Без категории
+    ECONOMY = "Экономика"
+    SECURITY = "Безопасность"
+    QUALITY_OF_LIFE = "Качество жизни"
+    EMIGRATION = "Эмиграция"
+    UNCATEGORIZED = "Без категории"  # Без категории
 
 
 class FiltredMetricGenderEnum(str, Enum):
     """ауцпопцу"""
 
-    TOTAL = "total"
-    FEMALE = "female"
-    MALE = "male"
-    OTHERS = "others"
+    TOTAL = "Общий"
+    FEMALE = "Женский"
+    MALE = "Мужской"
+    OTHERS = "Другое"

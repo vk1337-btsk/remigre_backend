@@ -4,9 +4,14 @@ from typing import Optional, Union
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.database.database import get_sessionmaker
+from src.core.dependency import get_sessionmaker
 from src.ms_metric.enums import CategoryMetricEnum, FiltredMetricGenderEnum
-from src.ms_metric.schemas import FiltersInfo, MetricDetailSchema, MetricOnlyListSchema, Body_GetLocationsByFilters
+from src.ms_metric.schemas import (
+    Body_GetLocationsByFilters,
+    FiltersInfo,
+    MetricDetailSchema,
+    MetricOnlyListSchema,
+)
 from src.ms_metric.services.db_metric_service import DB_MetricService
 
 
@@ -21,6 +26,7 @@ class MetricService:
     #
     # ============ Общие методы ============
     async def get_filters_info(self):
+
         return FiltersInfo(
             category=[e.value for e in CategoryMetricEnum],
             gender=[e.value for e in FiltredMetricGenderEnum],

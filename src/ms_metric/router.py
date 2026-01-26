@@ -2,7 +2,12 @@ from typing import Union
 
 from fastapi import APIRouter, Body, Depends, Path, Query
 
-from src.ms_metric.schemas import GetGraphics_Body, MetricDetailSchema, MetricOnlyListSchema, Body_GetLocationsByFilters
+from src.ms_metric.schemas import (
+    Body_GetLocationsByFilters,
+    GetGraphics_Body,
+    MetricDetailSchema,
+    MetricOnlyListSchema,
+)
 from src.ms_metric.services import MetricService
 
 
