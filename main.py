@@ -4,7 +4,6 @@ import logging
 from contextlib import asynccontextmanager
 
 from src.core.config import settings, setup_logging
-from src.core.dependency import verify_docs_auth
 
 
 setup_logging(settings.is_debug)
@@ -18,7 +17,8 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
-from src.core.utils.ssh_service import start_ssh_tunnel, stop_ssh_tunnel
+from src.core.dependency import docs_auth_dependency
+from src.core.services.ssh_service import ssh_manager
 from src.ms_location.router import router as location_router
 from src.ms_main.router import router as info_router
 from src.ms_metric.router import router as metric_router
@@ -38,7 +38,7 @@ async def lifespan(app: FastAPI):
         if not settings.is_project:
             logger.info("[Startup] Local mode → starting SSH tunnel")
 
-            ports = start_ssh_tunnel(
+            ports = ssh_manager.start_tunnel(
                 ssh_host=settings.ssh.host,
                 ssh_port=settings.ssh.port,
                 ssh_user=settings.ssh.user,
@@ -89,7 +89,7 @@ async def lifespan(app: FastAPI):
 
         if not settings.is_project:
             logger.info("[Shutdown] Stopping SSH tunnel")
-            stop_ssh_tunnel()
+            ssh_manager.stop_tunnel()
 
 
 app = FastAPI(
@@ -103,7 +103,7 @@ app = FastAPI(
 
 
 # --------------- Эндпоинт документации --------------
-@app.get("/", tags=["API Docs"], dependencies=[Depends(verify_docs_auth)])
+@app.get("/", tags=["API Docs"], dependencies=[Depends(docs_auth_dependency)])
 def swagger_ui():
     return get_swagger_ui_html(
         openapi_url="/openapi.json",

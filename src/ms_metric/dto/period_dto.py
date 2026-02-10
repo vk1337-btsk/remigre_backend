@@ -1,9 +1,11 @@
 import logging
-from typing import Any, Optional
 from datetime import datetime
+from typing import Any, Optional
 
 from pydantic import BaseModel
-from src.ms_metric.enums import PeriodTypeEnum
+
+from src.core.enums import PeriodTypeEnum
+
 
 logger = logging.getLogger(__name__)
 

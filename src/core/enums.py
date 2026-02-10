@@ -1,14 +1,26 @@
 from enum import Enum
 
 
+class GeographyLevelEnum(str, Enum):
+
+    COUNTRY = "country"
+    CITY = "city"
+
+
 class TypeDataEnum(str, Enum):
     """Типы данных метрик."""
 
-    INT = "int"
     STRING = "string"
     FLOAT = "float"
     RANGE = "range"
     BOOL = "bool"
+
+
+class AttributeTypeValueEnum(str, Enum):
+    """Типы атрибутов метрик."""
+
+    STRING = "string"
+    CURRENCY = "currency"
 
 
 class PeriodTypeEnum(str, Enum):
@@ -29,12 +41,3 @@ class CategoryMetricEnum(str, Enum):
     QUALITY_OF_LIFE = "Качество жизни"
     EMIGRATION = "Эмиграция"
     UNCATEGORIZED = "Без категории"  # Без категории
-
-
-class FiltredMetricGenderEnum(str, Enum):
-    """ауцпопцу"""
-
-    TOTAL = "Общий"
-    FEMALE = "Женский"
-    MALE = "Мужской"
-    OTHERS = "Другое"

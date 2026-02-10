@@ -24,8 +24,8 @@ class CountryShortInfoSchema(BaseSchema):
     id: int
     name: str
     iso_alpha_2: str
-    currency: str
-    population: int
+    currency: Optional[str] = Field(default=None)
+    population: Optional[int] = Field(default=None)
 
     metrics: dict
 

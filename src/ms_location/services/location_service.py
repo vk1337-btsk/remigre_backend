@@ -11,6 +11,7 @@ from src.ms_location.schemas import (
     CityDetailSchema,
     CountryDetailSchema,
     CountryListSchema,
+    CountryShortInfoSchema,
     LocationMainInfoSchema,
     LocationOnlyListSchema,
 )
@@ -50,35 +51,21 @@ class LocationService:
     async def get_location_by_coordinates_from_map(
         self, body: Body_GetCountryOrCityByCoordinates
     ) -> LocationMainInfoSchema:
-        """ """
+        """Возвращает основную информацию об объекте локации по его координатам."""
 
         row = await self.service_db.get_location_by_coordinates_from_map(
-            location_type=body.type,
-            latitude=body.latitude,
-            longitude=body.longitude,
+            location_type=body.type, latitude=body.latitude, longitude=body.longitude
         )
 
-        return LocationMainInfoSchema(
-            id=row["id"],
-            type=body.type,
-            name=row["name"],
-            iso_code=row["iso_code"],
-        )
+        return LocationMainInfoSchema(id=row["id"], type=body.type, name=row["name"], iso_code=row["iso_code"])
 
     #
     #
     # ============ Работа со странами ============
-    async def get_list_countries(
-        self, only_list: bool
-    ) -> Union[list[LocationMainInfoSchema], list[CountryDetailSchema]]:
+    async def get_list_countries(self) -> list[CountryShortInfoSchema]:
         """Возвращает список стран с основными метриками"""
 
-        if only_list:
-            result = await self.service_db.get_main_info_countries()
-            return result
-        else:
-            result = await self.service_db.get_short_info_countries()
-            return result
+        return await self.service_db.get_short_info_countries()
 
     async def get_country(
         self,

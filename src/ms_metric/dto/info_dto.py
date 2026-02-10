@@ -4,7 +4,7 @@ from typing import Any, Optional
 
 from pydantic import BaseModel
 
-from src.ms_metric.enums import CategoryMetricEnum, TypeDataEnum
+from src.core.enums import CategoryMetricEnum, TypeDataEnum
 
 
 class MetricInfoOptionsDTO(BaseModel):

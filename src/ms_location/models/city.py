@@ -101,7 +101,7 @@ class CityModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     # Обратная связь
     country = relationship("CountryModel", back_populates="cities", lazy="noload", foreign_keys=[country_id])
     region = relationship("RegionModel", back_populates="cities", lazy="noload", foreign_keys=[region_id])
-    data_entries = relationship("MetricDataModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
+    metric_data = relationship("MetricDataNewModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
 
     # ======== Классовые методы ========
     @classmethod
@@ -111,7 +111,7 @@ class CityModel(AbstractBaseModel, CreatedUpdatedAtMixin):
         return {
             "with_region": ("regions", cls.region),
             "with_country": ("cities", cls.country),
-            "with_data": ("data_entries", cls.data_entries),
+            "with_data": ("metric_data", cls.metric_data),
         }
 
     @classmethod

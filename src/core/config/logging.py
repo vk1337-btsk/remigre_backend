@@ -4,7 +4,7 @@ import sys
 import warnings
 
 from cryptography.utils import CryptographyDeprecationWarning
-
+from src.core.config import settings
 
 warnings.filterwarnings(
     "ignore",
@@ -48,7 +48,7 @@ def setup_logger_to_file(name: str = "import_logger") -> logging.Logger:
 
     # Создаём логгер
     logger = logging.getLogger(name)
-    logger.setLevel(logging.INFO)
+    logger.setLevel(logging.DEBUG if settings.is_debug else logging.INFO)
 
     # Если хендлеры уже есть — не добавляем новые
     if logger.handlers:

@@ -1,8 +1,8 @@
 from datetime import date, datetime
 from typing import Literal, Optional
 
+from src.core.enums import FiltredMetricGenderEnum
 from src.core.schemas.base_schemas import BaseSchema
-from src.ms_metric.enums import FiltredMetricGenderEnum
 
 
 class GetGraphics_Body(BaseSchema):

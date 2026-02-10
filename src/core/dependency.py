@@ -33,6 +33,7 @@ security = HTTPBasic()
 
 
 def verify_docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
+    """Зависимость для базовой авторизации на странице документации"""
 
     correct_username = secrets.compare_digest(credentials.username, settings.project.docs_username)
     correct_password = secrets.compare_digest(credentials.password, settings.project.docs_password)
@@ -43,3 +44,11 @@ def verify_docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
             detail="Incorrect credentials",
             headers={"WWW-Authenticate": "Basic"},
         )
+
+
+def docs_auth_dependency():
+    """Зависимость только для базовой авторизации на странице документации - только на сервере."""
+    
+    if settings.is_project:
+        return Depends(verify_docs_auth)
+    return None

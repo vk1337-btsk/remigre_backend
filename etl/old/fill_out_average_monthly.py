@@ -19,16 +19,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 # === Импорт моделей/enum'ов вашего проекта ===
-from src.core.database.database import AsyncSessionLocal  # fileciteturn0file0
-from src.ms_location.country import CountryModel  # fileciteturn0file4
-from src.ms_metric.data import MetricDataModel  # fileciteturn0file1
-from src.ms_metric.enums import (  # noqa: F401
+# from src.core.database.database import AsyncSessionLocal  # fileciteturn0file0
+# from src.ms_location.country import CountryModel  # fileciteturn0file4
+# from src.ms_metric.data import MetricDataModel  # fileciteturn0file1
+from src.core.enums import (  # noqa: F401
     CategoryMetricEnum,
     PeriodTypeEnum,
     TypeDataEnum,
 )
-from src.ms_metric.metric import MetricModel  # fileciteturn0file2
-from src.ms_metric.period import MetricPeriodModel  # fileciteturn0file3
+
+
+# from src.ms_metric.metric import MetricModel  # fileciteturn0file2
+# from src.ms_metric.period import MetricPeriodModel  # fileciteturn0file3
 
 
 logger = logging.getLogger(__name__)

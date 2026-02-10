@@ -82,8 +82,8 @@ class CountryModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     # Обратная связь
     regions = relationship("RegionModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     cities = relationship("CityModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
-    data_entries = relationship(
-        "MetricDataModel", back_populates="country", lazy="noload", cascade="all, delete-orphan"
+    metric_data = relationship(
+        "MetricDataNewModel", back_populates="country", lazy="noload", cascade="all, delete-orphan"
     )
 
     @hybrid_property
@@ -102,7 +102,7 @@ class CountryModel(AbstractBaseModel, CreatedUpdatedAtMixin):
         return {
             "with_region": ("regions", cls.regions),
             "with_city": ("cities", cls.cities),
-            "with_data": ("data_entries", cls.data_entries),
+            "with_data": ("metric_data", cls.metric_data),
         }
 
     @classmethod

@@ -6,12 +6,11 @@ from fastapi import APIRouter, Body, Depends, Path, Query
 from src.ms_location.schemas import (
     Body_GetCountryOrCityByCoordinates,
     CityDetailSchema,
-    CountryDetailSchema,
-    CountryListSchema,
     LocationMainInfoSchema,
     LocationOnlyListSchema,
     LocationsGeoJSON,
 )
+from src.ms_location.schemas.schemas import CountryShortInfoSchema
 from src.ms_location.services.location_service import LocationService
 
 
@@ -28,12 +27,12 @@ router = APIRouter(prefix="/location")
     description=str(
         "Использовать для строк поиска, возвращает список стран/городов по из названию или части названия.\n"
         "Начинаешь вводить название города страны (на русском языке)"
-        "(можно делать запрос от 3-х символов) -> получаешь список из вариантов"
+        "(можно делать запрос от 1-го символа) -> получаешь список из вариантов"
     ),
     tags=["Локации - Общее"],
 )
 async def get_search(
-    name: str = Query(min_length=3, title="Название и/или часть названия страны/города"),
+    name: str = Query(min_length=1, title="Название и/или часть названия страны/города"),
     service: LocationService = Depends(),
 ) -> list[LocationMainInfoSchema]:
 
@@ -76,16 +75,15 @@ async def get_coordinates_for_map(
 # --------------- Эндпоинты стран и городов --------------
 @router.get(
     "/countries",
-    summary="Получить список стран (c основной или детальной информацией)",
-    description="Можно получить список стран с базовой информацией, или только список стран для фильтрации",
+    summary="РЕАЛИЗОВАНО: Получить список стран с основной информацией об их характеристиках и метриках",
+    description="Можно получить список стран с основной информацией об их характеристиках и метриках",
     tags=["Локации - Города и Страны"],
 )
 async def get_all_counties(
-    only_list: bool = Query(default=False, title="Вернуть только список стран"),
     service: LocationService = Depends(),
-) -> Union[list[LocationMainInfoSchema], list[CountryDetailSchema]]:
+) -> list[CountryShortInfoSchema]:
 
-    return await service.get_list_countries(only_list)
+    return await service.get_list_countries()
 
 
 @router.get(

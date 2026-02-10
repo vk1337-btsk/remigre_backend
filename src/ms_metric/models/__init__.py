@@ -1,12 +1,23 @@
-from .data import MetricDataModel
-from .info import MetricInfoModel
-from .period import MetricPeriodModel
-from .series import MetricSeriesModel
+from sqlalchemy.orm import configure_mappers
+
+from .attribute_type import MetricAttributeTypeModel
+from .attribute_value import MetricAttributeValueModel
+from .data import MetricDataNewModel
+from .info import MetricInfoNewModel
+from .period import MetricPeriodNewModel
+from .series import MetricSeriesNewModel
+from .series_attributes import MetricSeriesAttribute
+
+
+configure_mappers()  # Явно конфигурируем все мапперы после импорта всех моделей
 
 
 __all__ = [
-    "MetricDataModel",
-    "MetricSeriesModel",
-    "MetricPeriodModel",
-    "MetricInfoModel",
+    "MetricAttributeTypeModel",
+    "MetricAttributeValueModel",
+    "MetricDataNewModel",
+    "MetricInfoNewModel",
+    "MetricPeriodNewModel",
+    "MetricSeriesNewModel",
+    "MetricSeriesAttribute",
 ]

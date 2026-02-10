@@ -5,10 +5,8 @@ from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.core.dependency import get_sessionmaker
-from src.ms_metric.enums import CategoryMetricEnum, FiltredMetricGenderEnum
 from src.ms_metric.schemas import (
     Body_GetLocationsByFilters,
-    FiltersInfo,
     MetricDetailSchema,
     MetricOnlyListSchema,
 )
@@ -25,12 +23,12 @@ class MetricService:
     #
     #
     # ============ Общие методы ============
-    async def get_filters_info(self):
+    # async def get_filters_info(self):
 
-        return FiltersInfo(
-            category=[e.value for e in CategoryMetricEnum],
-            gender=[e.value for e in FiltredMetricGenderEnum],
-        )
+    #     return FiltersInfo(
+    #         category=[e.value for e in CategoryMetricEnum],
+    #         gender=[e.value for e in FiltredMetricGenderEnum],
+    #     )
 
     async def get_county_and_city_by_filter(self, body: Body_GetLocationsByFilters):
         """Возвращает список стран и городов по полученным фильтрам"""

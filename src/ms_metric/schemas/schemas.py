@@ -2,12 +2,8 @@ from typing import Any, Optional
 
 from pydantic import Field
 
+from src.core.enums import CategoryMetricEnum, FiltredMetricGenderEnum, TypeDataEnum
 from src.core.schemas.base_schemas import BaseSchema
-from src.ms_metric.enums import (
-    CategoryMetricEnum,
-    FiltredMetricGenderEnum,
-    TypeDataEnum,
-)
 
 
 class MetricOnlyListSchema(BaseSchema):

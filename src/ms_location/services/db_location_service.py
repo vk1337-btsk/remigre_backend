@@ -1,5 +1,6 @@
 import json
 import logging
+from datetime import datetime
 from typing import Literal, Optional, Tuple
 
 from fastapi import HTTPException
@@ -14,6 +15,12 @@ from src.ms_location.schemas import (
     CountryDetailSchema,
     CountryShortInfoSchema,
     LocationMainInfoSchema,
+)
+from src.ms_metric.models import (
+    MetricDataModel,
+    MetricInfoModel,
+    MetricPeriodModel,
+    MetricSeriesModel,
 )
 
 
@@ -209,21 +216,69 @@ class DB_LocationService:
     async def get_short_info_countries(self) -> list[CountryShortInfoSchema]:
         """Получает и возвращает из БД список с краткой информацией о странах."""
 
-        stmt = select(
-            # Параметры страны
-            CountryModel.id,
-            CountryModel.name,
-            CountryModel.iso_alpha_2,
-            # Основные характеристики
-            CountryModel.currency,
-            CountryModel.population,
-        ).where(
-            CountryModel.is_active == True,
+        current_year = datetime.utcnow().year
+
+        stmt = (
+            select(
+                CountryModel.id,
+                CountryModel.name,
+                CountryModel.iso_alpha_2,
+                CountryModel.currency,
+                CountryModel.population,
+                func.avg(MetricDataModel.value_float).label("metric_1_avg"),
+            )
+            .select_from(CountryModel)
+            .outerjoin(
+                MetricDataModel,
+                MetricDataModel.country_id == CountryModel.id,
+            )
+            .outerjoin(
+                MetricSeriesModel,
+                MetricSeriesModel.id == MetricDataModel.series_id,
+            )
+            .outerjoin(
+                MetricInfoModel,
+                and_(
+                    MetricInfoModel.id == MetricSeries  Model.metric_id,
+                    MetricInfoModel.id == 1,  # ← ВАЖНО: тут
+                ),
+            )
+            .outerjoin(
+                MetricPeriodModel,
+                and_(
+                    MetricPeriodModel.id == MetricDataModel.period_id,
+                    MetricPeriodModel.period_year == current_year,  # ← и тут
+                ),
+            )
+            .where(
+                CountryModel.is_active.is_(True),
+            )
+            .group_by(
+                CountryModel.id,
+                CountryModel.name,
+                CountryModel.iso_alpha_2,
+                CountryModel.currency,
+                CountryModel.population,
+            )
         )
 
         result = await self._async_session.execute(stmt)
+
         rows = result.all()
-        return [CountryShortInfoSchema.model_validate(obj) for obj in rows]
+
+        return [
+            CountryShortInfoSchema(
+                id=row.id,
+                name=row.name,
+                iso_alpha_2=row.iso_alpha_2,
+                currency=row.currency,
+                population=row.population,
+                metrics={
+                    "metric_1_avg": row.metric_1_avg,
+                },
+            )
+            for row in rows
+        ]
 
     async def get_country_by_id(self, county_id: int) -> CountryDetailSchema:
 

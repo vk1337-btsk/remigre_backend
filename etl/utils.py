@@ -3,20 +3,20 @@
 Набор функций для загрузки данных в БД
 """
 
-from typing import Any, Dict, Iterable, List, Optional, Sequence, Union, cast
 import unicodedata
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Union, cast
 
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.config.logging import setup_logger_to_file
+from src.core.enums import CategoryMetricEnum, PeriodTypeEnum, TypeDataEnum
 from src.ms_location.models import CountryModel
 from src.ms_metric.dto import (
     MetricInfoCreateDTO,
     MetricPeriodCreateDTO,
     MetricSeriesCreateDTO,
 )
-from src.ms_metric.enums import CategoryMetricEnum, PeriodTypeEnum, TypeDataEnum
 from src.ms_metric.models import MetricInfoModel, MetricPeriodModel, MetricSeriesModel
 
 
