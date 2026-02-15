@@ -1,4 +1,4 @@
-from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, text
+from sqlalchemy import Boolean, Column, ForeignKey, Index, Integer, String, text
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
@@ -36,6 +36,12 @@ class MetricSeriesNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
         nullable=True,
         comment="Является ли серия предустановленной (системной) или создана пользователем",
     )
+    attributes_hash = Column(
+        String(255),
+        nullable=True,
+        index=True,
+        comment="Хэш от отсортированного списка пар (attribute_type_id, attribute_value_id)",
+    )
     meta_data = Column(
         JSONB, nullable=True, default=None, comment="Метаданные в формате JSON (NULL - нет данных, JSON - есть данные)"
     )
@@ -46,31 +52,23 @@ class MetricSeriesNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     attributes = relationship(
         "MetricAttributeValueModel",
         secondary="metric_series_attribute",
-        back_populates="series",  # Должно совпадать с именем в MetricAttributeValueModel
-        viewonly=True,  # Добавьте это для избежания конфликтов
-        overlaps="series_attributes",  # Добавить
-    )
-
-    periods = relationship(
-        "MetricPeriodNewModel",
         back_populates="series",
-        cascade="all, delete-orphan",
-        foreign_keys="[MetricPeriodNewModel.series_id]",  # Явно указываем foreign_keys
+        viewonly=True,
+        overlaps="series_attributes",
     )
 
     data = relationship(
         "MetricDataNewModel",
         back_populates="series",
         cascade="all, delete-orphan",
-        foreign_keys="[MetricDataNewModel.series_id]",  # Явно указываем foreign_keys
+        foreign_keys="[MetricDataNewModel.series_id]",
     )
 
-    # Связь с MetricSeriesAttribute для прямого доступа
     series_attributes = relationship(
         "MetricSeriesAttribute",
         back_populates="series",
         cascade="all, delete-orphan",
-        overlaps="attributes",  # Добавить
+        overlaps="attributes",
     )
 
     def __repr__(self):

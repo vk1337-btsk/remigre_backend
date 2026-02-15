@@ -94,7 +94,7 @@ class MetricDataNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     )
 
     # Значения (только одно поле должно быть заполнено)
-    value_numeric = Column(Numeric, nullable=True, comment="Числовое значение показателя")
+    value_numeric = Column(Numeric(asdecimal=True), nullable=True, comment="Числовое значение показателя")
 
     value_string = Column(String(500), nullable=True, comment="Строковое значение показателя (макс. 500 символов)")
 

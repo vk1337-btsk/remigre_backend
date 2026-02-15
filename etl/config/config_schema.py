@@ -83,6 +83,7 @@ class ParsedAttributeDTO(BaseModel):
 class PeriodDataDTO(BaseModel):
     """DTO данных периода"""
 
+    period_type: Optional[PeriodTypeEnum] = Field(default=None, description="Тип периода")
     period_year: Optional[int] = Field(default=None, description="Год периода")
     period_month: Optional[int] = Field(default=None, description="Месяц периода (1-12)", ge=1, le=12)
     period_quarter: Optional[int] = Field(default=None, description="Квартал периода (1-4)", ge=1, le=4)
@@ -138,33 +139,34 @@ class AttributeConfig(BaseModel):
     )
 
     # Общие настройки (применяются ко всем типам атрибутам, если не переопределены)
-    def_type_value_type: AttributeTypeValueEnum = Field(
+    default_type_value_type: AttributeTypeValueEnum = Field(
         default=DEFAULT_TYPE_VALUE_TYPE, description="Значение типа атрибута по умолчанию для типа атрибута"
     )
-    def_type_is_active: bool = Field(
+    default_type_is_active: bool = Field(
         default=DEFAULT_TYPE_IS_ACTIVE, description="Статус активности по умолчанию для типа атрибута"
     )
-    def_type_is_filtered: bool = Field(
+    default_type_is_filtered: bool = Field(
         default=DEFAULT_TYPE_IS_FILTERED, description="Статус фильтра по умолчанию для типа атрибута"
     )
-    def_type_sort_order: int = Field(
+    default_type_sort_order: int = Field(
         default=DEFAULT_TYPE_SORT_ORDER,
         description="Значение сортировки по умолчанию для типа атрибута",
     )
-    def_type_meta_data: Optional[Dict[str, Any]] = Field(
+    default_type_meta_data: Optional[Dict[str, Any]] = Field(
         default=DEFAULT_TYPE_META_DATA, description="Метаданные по умолчанию для типа атрибутов"
     )
+
     # Общие настройки (применяются ко всем значениям атрибутов, если не переопределены)
-    def_value_is_active: bool = Field(
+    default_value_is_active: bool = Field(
         default=DEFAULT_VALUE_IS_ACTIVE, description="Значение по умолчанию для значения атрибута"
     )
-    def_value_is_filtered: bool = Field(
+    default_value_is_filtered: bool = Field(
         default=DEFAULT_VALUE_IS_FILTERED, description="Статус фильтра по умолчанию для значения атрибута"
     )
-    def_value_sort_order: int = Field(
+    default_value_sort_order: int = Field(
         default=DEFAULT_VALUE_SORT_ORDER, description="Значение сортировки по умолчанию для значения атрибута"
     )
-    def_value_meta_data: Optional[Dict[str, Any]] = Field(
+    default_value_meta_data: Optional[Dict[str, Any]] = Field(
         default=DEFAULT_VALUE_META_DATA, description="Метаданные по умолчанию для значения атрибутов"
     )
 
@@ -173,8 +175,10 @@ class AttributeConfig(BaseModel):
         """Валидация стратегии парсинга"""
 
         if self.parsing_strategy == AttributeParsingStrategyEnum.FIXED_TYPE:
-            if not self.attribute_type_code:
-                raise ValueError("При parsing_strategy='fixed_type' должен быть задан attribute_type_code")
+            if not self.attribute_type_code or not self.attribute_type_name:
+                raise ValueError(
+                    "При parsing_strategy='fixed_type' должен быть задан attribute_type_code и self.attribute_type_name"
+                )
 
         if self.parsing_strategy == AttributeParsingStrategyEnum.CUSTOM:
             if not self.custom_parser:
@@ -237,13 +241,10 @@ class PeriodConfig(BaseModel):
     model_config = ConfigDict(arbitrary_types_allowed=True)
 
     # Тип периода
-    period_type: PeriodTypeEnum = Field(default=PeriodTypeEnum.YEARLY, description="Тип периода")
+    period_type: Optional[PeriodTypeEnum] = Field(default=None, description="Тип периода")
 
     # Поля периода
-    period_year: FieldSourceDTO = Field(
-        default_factory=lambda: FieldSourceDTO(), description="Источник данных для года периода"
-    )
-
+    period_year: Optional[FieldSourceDTO] = Field(default=None, description="Год периода")
     period_month: Optional[FieldSourceDTO] = Field(default=None, description="Источник данных для месяца периода")
     period_quarter: Optional[FieldSourceDTO] = Field(default=None, description="Источник данных для квартала периода")
     period_week: Optional[FieldSourceDTO] = Field(default=None, description="Источник данных для недели периода")
@@ -251,28 +252,6 @@ class PeriodConfig(BaseModel):
     date_end: Optional[FieldSourceDTO] = Field(default=None, description="Источник данных для конца периода")
     collected_at: Optional[FieldSourceDTO] = Field(default=None, description="Источник данных для даты сбора")
     meta_data: Optional[Dict[str, Any]] = Field(default=None, description="Дополнительные метаданные периода")
-
-    @property
-    def required_columns(self) -> List[str]:
-        """Все обязательные колонки для периода"""
-
-        columns = []
-
-        # Проверяем каждое поле периода
-        for field_name in [
-            "period_year",
-            "period_month",
-            "period_quarter",
-            "period_week",
-            "date_start",
-            "date_end",
-            "collected_at",
-        ]:
-            field_source = getattr(self, field_name)
-            if field_source and field_source.source_type == "column" and field_source.column_name:
-                columns.append(field_source.column_name)
-
-        return columns
 
 
 class MetricConfig(BaseModel):
@@ -282,7 +261,7 @@ class MetricConfig(BaseModel):
 
     # =========== Параметры заполнения таблицы metric_info
     # Основные данные
-    slug: str = Field(max_length=255,description="Slug метрики (уникальный идентификатор)")
+    slug: str = Field(max_length=255, description="Slug метрики (уникальный идентификатор)")
     name: str = Field(max_length=255, description="Название метрики")
     description: Optional[str] = Field(default=None, description="Описание метрики")
     category: CategoryMetricEnum = Field(description="Категория метрики")
@@ -323,7 +302,7 @@ class MetricConfig(BaseModel):
     series_metadata: Optional[Dict[str, Any]] = Field(default=None, description="Дополнительные метаданные серии")
 
     # =========== Параметры заполнения таблицы metric_period
-    period: PeriodConfig = Field(default_factory=lambda: PeriodConfig(), description="Конфигурация периода")
+    period: Optional[PeriodConfig] = Field(default=None, description="Конфигурация периода")
 
     # =========== Параметры атрибутов/фильтров
     attributes: List[AttributeConfig] = Field(default_factory=list, description="Конфигурация атрибутов/фильтров")
@@ -341,40 +320,30 @@ class CacheConfig(BaseModel):
     metric_size: int = Field(default=5)
     metric_name: str = Field(default="metric_cache")
 
-    series_size: int = Field(default=30000)
+    series_size: int = Field(default=50000)
     series_name: str = Field(default="series_cache")
 
-    period_size: int = Field(default=30000)
+    period_size: int = Field(default=2000)
     period_name: str = Field(default="period_cache")
 
-    attribute_type_size: int = Field(default=1000)
-    attribute_type_name: str = Field(default="attribute_type_cache")
+    attr_type_size: int = Field(default=1000)
+    attr_type_name: str = Field(default="attribute_type_cache")
 
-    attribute_value_size: int = Field(default=1000)
-    attribute_value_name: str = Field(default="attribute_value_cache")
+    attr_value_size: int = Field(default=1000)
+    attr_value_name: str = Field(default="attribute_value_cache")
 
 
 class ETLConfig(BaseModel):
     """Полная конфигурация ETL"""
 
-    # Параллелизм
-    max_workers: int = Field(default=8, description="Максимальное количество потоков")
-    max_concurrent_chunks: int = Field(default=4, description="Максимальное количество параллельных чанков")
-    chunk_size: int = Field(default=10000, description="Размер чанка для параллельной обработки")
-    use_multiprocessing: bool = Field(default=False, description="Использовать multiprocessing для CPU-bound операций")
-
-    # Оптимизации БД
-    bulk_insert_method: str = Field(default="batch", description="Метод вставки: batch, vectorized, copy")
-    batch_size: int = Field(default=5000, description="Размер батча для вставки")
-    disable_indexes_during_import: bool = Field(default=False, description="Отключать индексы во время импорта")
-
-    # Оптимизации памяти
-    low_memory_mode: bool = Field(default=False, description="Режим низкого потребления памяти")
-    cache_compression: bool = Field(default=True, description="Сжатие кэша в памяти")
-
-    # =========== Параметры кэширования
-    cache: CacheConfig = Field(default_factory=CacheConfig, title="Настройки кэша")
     max_workers: int = Field(default=8, title="Максимальное количестов воркеров")
+
+    # =========== Параметры кэширования и загрузки в БД
+    cache: CacheConfig = Field(default_factory=CacheConfig, title="Настройки кэша")
+    chank_size: int = Field(default=10000, title="Количество чанков")
+    batch_size: int = Field(default=10000, description="Размер батча для вставки (увеличили для производительности)")
+    skip_invalid_rows: bool = Field(default=True, description="Пропускать строки с ошибками")
+    skip_duplicates: bool = Field(default=True, description="Пропускать дубликаты существующих записей")
 
     # =========== Параметры источника-файла с метриками
     name: str = Field(description="Название ETL, используется для логов")
@@ -391,53 +360,13 @@ class ETLConfig(BaseModel):
     )
 
     country_column: str = Field(description="Колонка для сопоставления стран (name или name_eng)")
-    city_mapping: Dict[str, List[str]] = Field(
-        default_factory=dict, description="Маппинг названий городов"
-    )  # Опциональные поля для будущего расширения
+    city_mapping: Dict[str, List[str]] = Field(default_factory=dict, description="Маппинг названий городов")
 
     # =========== Конфигурация метрик
     metric: MetricConfig = Field(description="Конфигурация метрики")
 
-    # =========== Настройки загрузки данных в БД
-    batch_size: int = Field(default=2000, description="Размер батча для вставки (увеличили для производительности)")
-    skip_invalid_rows: bool = Field(default=True, description="Пропускать строки с ошибками")
-    skip_duplicates: bool = Field(default=True, description="Пропускать дубликаты существующих записей")
-
     # =========== Дополнительные проверки
     validate_country_exists: bool = Field(default=True, description="Проверять существование страны в БД")
-
-    @property
-    def required_columns(self) -> Set[str]:
-        """Все обязательные колонки из конфигурации"""
-
-        required = set()
-
-        # Колонки метрики
-        required.add(self.metric.country_column)
-        required.add(self.metric.value_column)
-
-        if self.metric.city_column:
-            required.add(self.metric.city_column)
-
-        # Колонки периода
-        for field_name in [
-            "period_year",
-            "period_month",
-            "period_quarter",
-            "period_week",
-            "date_start",
-            "date_end",
-            "collected_at",
-        ]:
-            field_source = getattr(self.metric.period, field_name, None)
-            if field_source and field_source.source_type == "column" and field_source.column_name:
-                required.add(field_source.column_name)
-
-        # Колонки атрибутов
-        for attr in self.metric.attributes:
-            required.add(attr.csv_column)
-
-        return required
 
     @model_validator(mode="after")
     def validate_geography_level(self):

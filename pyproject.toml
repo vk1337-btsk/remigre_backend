@@ -8,7 +8,6 @@ packages = [{ include = "*", from = "src" }]
 
 [tool.poetry.dependencies]
 python = ">=3.11,<4.0"
-alembic = "^1.16.2"
 asyncpg = "^0.30.0"
 fastapi = "^0.115.13"
 geoalchemy2 = "^0.18.0"

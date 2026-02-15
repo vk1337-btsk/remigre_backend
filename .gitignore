@@ -9,7 +9,7 @@ __pycache__
 logs/
 data/
 dumps/
-
+etc/
 
 .env.local
 

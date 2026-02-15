@@ -8,6 +8,7 @@ from sqlalchemy import (
     ForeignKey,
     Index,
     Integer,
+    UniqueConstraint,
     text,
 )
 from sqlalchemy.dialects.postgresql import JSONB
@@ -30,12 +31,17 @@ class MetricPeriodNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
         ),
         CheckConstraint("period_week IS NULL OR (period_week >= 1 AND period_week <= 53)", name="check_week_range"),
         CheckConstraint("period_year >= 2000", name="check_year_range"),
-        Index("idx_period_series", "series_id"),
+        # Уникальность периода
+        UniqueConstraint(
+            "period_type", "period_year", "period_month", "period_quarter", "period_week", name="uq_period_components"
+        ),
+        # Индексы
         Index("idx_period_type", "period_type"),
         Index("idx_period_year", "period_year"),
         Index("idx_period_date", "date_start", "date_end"),
         Index("idx_period_active", "is_active", postgresql_where=text("is_active = true")),
         Index("idx_period_metadata", "meta_data", postgresql_using="gin"),
+        Index("idx_period_components", "period_type", "period_year", "period_month", "period_quarter", "period_week"),
         {
             "comment": "Периоды данных метрик (обновленная схема) - содержит информацию о временных интервалах для данных метрик"
         },
@@ -43,30 +49,15 @@ class MetricPeriodNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
 
     id = Column(Integer, primary_key=True, autoincrement=True, comment="Уникальный идентификатор периода")
 
-    series_id = Column(
-        Integer,
-        ForeignKey("metric_series_new.id", name="metric_period_new_series_id_fkey", ondelete="CASCADE"),
-        nullable=True,
-        comment="Ссылка на серию данных",
-    )
-
-    # Период
     period_type = Column(
-        Enum(PeriodTypeEnum, name="period_type_enum", schema="public"),
-        nullable=False,
-        comment="Тип периода (YEARLY, QUARTERLY, MONTHLY, WEEKLY, DAILY)",
+        Enum(PeriodTypeEnum, name="period_type_enum", schema="public"), nullable=False, comment="Тип периода"
     )
 
     period_year = Column(Integer, nullable=False, comment="Год периода (обязательное поле, должен быть >= 2000)")
-
     period_month = Column(Integer, nullable=True, comment="Месяц периода (1-12, NULL если не применимо)")
-
     period_quarter = Column(Integer, nullable=True, comment="Квартал периода (1-4, NULL если не применимо)")
-
     period_week = Column(Integer, nullable=True, comment="Неделя периода (1-53, NULL если не применимо)")
-
     date_start = Column(Date, nullable=True, comment="Дата начала периода")
-
     date_end = Column(Date, nullable=True, comment="Дата окончания периода")
 
     collected_at = Column(DateTime, nullable=True, comment="Дата и время сбора данных для этого периода")
@@ -81,8 +72,7 @@ class MetricPeriodNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     meta_data = Column(JSONB, nullable=True, comment="Метаданные периода в формате JSON (источник, метод сбора и т.д.)")
 
     # Связи
-    series = relationship("MetricSeriesNewModel", back_populates="periods")
     data_entries = relationship("MetricDataNewModel", back_populates="period", cascade="all, delete-orphan")
 
     def __repr__(self):
-        return f"<MetricPeriodNewModel(id={self.id}, series={self.series_id}, year={self.period_year})>"
+        return f"<MetricPeriodNewModel(id={self.id},  year={self.period_year})>"

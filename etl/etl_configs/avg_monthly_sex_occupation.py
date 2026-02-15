@@ -1,10 +1,13 @@
+# etl/etl_configs/avg_monthly_sex_occupation.py
 """
-Конфигурация для загрузки данных 'Средний ежемесячный заработок сотрудников в зависимости от пола и профессии'
+Конфигурация для загрузки данных
+'Average monthly earnings of employees by sex and occupation'
+'Средний ежемесячный заработок сотрудников в зависимости от пола и профессии'
 """
+from decimal import ROUND_HALF_UP, Decimal
+from typing import List, Optional, Union
 
-from typing import List
-
-from etl.universal.config_schema import (
+from etl.config.config_schema import (
     AttributeConfig,
     AttributeParsingStrategyEnum,
     AttributeTypeDTO,
@@ -37,7 +40,7 @@ def parse_column_full_data_complex(value: str) -> ComplexParseResultDTO:
     """
 
     attributes: List[ParsedAttributeDTO] = []
-    period_data: PeriodDataDTO = PeriodDataDTO()
+    period_data: Optional[PeriodDataDTO] = None
 
     if not value:
         return ComplexParseResultDTO()
@@ -101,6 +104,9 @@ def parse_column_full_data_complex(value: str) -> ComplexParseResultDTO:
             mapped_semester_data = {"First semester": 6, "Second semester": 12}
             mapped_quarter_data = {"Second quarter": 2, "Third quarter": 3, "Fourth quarter": 4}
             value = part[23:]
+
+            period_data = PeriodDataDTO()
+
             if value in mapped_month_data.keys():
                 period_data.period_month = mapped_month_data.get(value)
             elif value in mapped_semester_data.keys():
@@ -163,12 +169,26 @@ def parse_obs_status_label(value: str) -> ParsedAttributeDTO:
     - "Break in series"
     - "Unreliable"
     """
-
-    result: ParsedAttributeDTO = ParsedAttributeDTO(
+    result = ParsedAttributeDTO(
         type=AttributeTypeDTO(code="OBS status", name="Статус наблюдения"),
-        value=AttributeValueDTO(code=value, name=value),
+        value=AttributeValueDTO(code=str(value).strip(), name=str(value).strip()),
     )
     return result
+
+
+def value_transform(value: Union[str, float, int]) -> Decimal:
+    """Преобразует значение в Decimal с двумя знаками после запятой."""
+    try:
+        if isinstance(value, str):
+            cleaned = value.replace(",", ".")
+            d = Decimal(cleaned)
+        elif isinstance(value, (float, int)):
+            d = Decimal(str(value))
+        else:
+            raise ValueError(f"Неизвестный тип данных {type(value)=} для значения {value=}")
+        return d.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
+    except Exception as error:
+        raise ValueError(f"Ошибка при преобразовании значения {value=}. Ошибка: {error=}")
 
 
 def parse_note_classif_label(value: str) -> ParsedAttributeDTO:
@@ -178,8 +198,8 @@ def parse_note_classif_label(value: str) -> ParsedAttributeDTO:
     - "Occupation (ISCO-88): Nonstandard occupation - Including 3"
     """
 
-    type_code, value_name = value.split(": ")
-    result: ParsedAttributeDTO = ParsedAttributeDTO(
+    type_code, value_name = value.split(": ", 1)
+    result = ParsedAttributeDTO(
         type=AttributeTypeDTO(code=type_code, name=type_code),
         value=AttributeValueDTO(code=value_name, name=value_name),
     )
@@ -188,7 +208,9 @@ def parse_note_classif_label(value: str) -> ParsedAttributeDTO:
 
 def create_avg_monthly_earnings_employees_sex_occupation_etl_config() -> ETLConfig:
     """Создает конфигурацию для загрузки данных
-    'Средний ежемесячный заработок сотрудников в зависимости от пола и профессии'"""
+    'Average monthly earnings of employees by sex and occupation'
+    'Средний ежемесячный заработок сотрудников в зависимости от пола и профессии'
+    """
 
     # Конфигурация метрики
     metric_config = MetricConfig(
@@ -217,20 +239,19 @@ def create_avg_monthly_earnings_employees_sex_occupation_etl_config() -> ETLConf
         # =========== Настройки для ETL
         # Основные настройки ETL
         value_column="obs_value",
+        value_transform=value_transform,
         country_column="ref_area.label",
         # Опциональные поля для будущего расширения
         city_column=None,
         # =========== Параметры заполнения таблицы metric_series
-        # series_is_active=True,
-        # series_is_preset=False,
-        # series_metadata=None,
+        # ...
         # =========== Параметры заполнения таблицы metric_period
         period=PeriodConfig(
             period_type=PeriodTypeEnum.YEARLY,
             period_year=FieldSourceDTO(
                 source_type=FieldSourceTypeEnum.COLUMN,
                 column_name="time",
-                transform_callback=lambda x: int(x) if x else None,
+                transform_callback=int,
             ),
         ),
         # =========== Параметры атрибутов/фильтров
@@ -314,6 +335,7 @@ def create_avg_monthly_earnings_employees_sex_occupation_etl_config() -> ETLConf
             "United States of America": ["USA"],
             "Venezuela (Bolivarian Republic of)": ["Venezuela"],
             "Viet Nam": ["Vietnam"],
+            "Palestine (State of)": ["Palestine"],
             "Marshall Islands": ["Marshall Islands"],
             "Australia": ["Australia"],
             "Bermuda": ["Bermuda"],

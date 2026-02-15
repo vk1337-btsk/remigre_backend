@@ -1,4 +1,4 @@
-# etl/universal/session_manager.py
+# etl/services/session_manager.py
 """
 Менеджер сессий для ETL с поддержкой SSH-туннелей
 """
