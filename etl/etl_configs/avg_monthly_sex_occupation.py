@@ -224,15 +224,6 @@ def create_avg_monthly_earnings_employees_sex_occupation_etl_config() -> ETLConf
         # Сведения об источнике
         source_name="ILOSTAT",
         source_url="https://rshiny.ilo.org/dataexplorer06/?lang=en&segment=indicator&id=EAR_4MTH_SEX_OCU_CUR_NB_A",
-        # Параметры отображения
-        show_in_country_list=True,
-        show_in_country_detail=True,
-        show_in_city_list=False,
-        show_in_city_detail=False,
-        list_priority=0,
-        detail_priority=0,
-        is_primary=True,
-        is_secondary=True,
         # Дополнительно
         meta_data=None,
         is_active=True,

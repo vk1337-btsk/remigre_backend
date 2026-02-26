@@ -22,8 +22,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.ext.hybrid import hybrid_property
 from sqlalchemy.orm import relationship, selectinload, with_loader_criteria
 
-from src.core.database.base_dto import GetFilteredListDTO
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_dto import GetFilteredListDTO
 from src.ms_location.dto.city_dto import (
     CityCreateDTO,
     CityGetDTO,
@@ -101,7 +101,7 @@ class CityModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     # Обратная связь
     country = relationship("CountryModel", back_populates="cities", lazy="noload", foreign_keys=[country_id])
     region = relationship("RegionModel", back_populates="cities", lazy="noload", foreign_keys=[region_id])
-    metric_data = relationship("MetricDataNewModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
+    metric_data = relationship("MetricDataModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
 
     # ======== Классовые методы ========
     @classmethod

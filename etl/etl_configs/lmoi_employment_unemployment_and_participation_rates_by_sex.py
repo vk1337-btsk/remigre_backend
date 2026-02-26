@@ -4,7 +4,7 @@
 'Labour market outcomes of immigrants - Employment, unemployment, and participation rates by sex'
 'Результаты трудоустройства иммигрантов: занятость, безработица и участие в рабочей силе в зависимости от пола'
 """
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
 from typing import Optional, Union
 
 from etl.config.config_schema import (
@@ -76,15 +76,6 @@ def create_lmoi_employment_unemployment_and_participation_rates_by_sex_etl_confi
         # Сведения об источнике
         source_name="OECD Data Explorer",
         source_url="https://data-explorer.oecd.org/vis?lc=en&df[ds]=DisseminateFinalDMZ&df[id]=DSD_MIG%40DF_MIG_NUP_SEX&df[ag]=OECD.ELS.IMD&df[vs]=1.0&dq=..A.....&pd=2000%2C2024&to[TIME_PERIOD]=false",
-        # Параметры отображения
-        show_in_country_list=True,
-        show_in_country_detail=True,
-        show_in_city_list=False,
-        show_in_city_detail=False,
-        list_priority=0,
-        detail_priority=0,
-        is_primary=True,
-        is_secondary=True,
         # Дополнительно
         meta_data=None,
         is_active=True,

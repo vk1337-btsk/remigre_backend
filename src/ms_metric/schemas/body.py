@@ -1,7 +1,6 @@
 from datetime import date, datetime
 from typing import Literal, Optional
 
-from src.core.enums import FiltredMetricGenderEnum
 from src.core.schemas.base_schemas import BaseSchema
 
 
@@ -17,8 +16,6 @@ class GetGraphics_Body(BaseSchema):
     date_to: date
 
     unit: str
-
-    gender: FiltredMetricGenderEnum
 
 
 class MetricFilters(BaseSchema):

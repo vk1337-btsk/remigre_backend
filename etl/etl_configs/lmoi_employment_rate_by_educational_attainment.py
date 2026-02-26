@@ -4,8 +4,8 @@
 'Labour market outcomes of immigrants - Employment rates by educational attainment'
 'Результаты трудоустройства иммигрантов: уровень занятости в зависимости от уровня образования'
 """
-from decimal import ROUND_HALF_UP, Decimal
-from typing import List, Optional, Union
+from decimal import Decimal
+from typing import Optional, Union
 
 from etl.config.config_schema import (
     AttributeConfig,
@@ -75,15 +75,6 @@ def create_lmoi_employment_rate_by_educational_attainment_etl_config() -> ETLCon
         # Сведения об источнике
         source_name="OECD Data Explorer",
         source_url="https://data-explorer.oecd.org/vis?df[ds]=DisseminateFinalDMZ&df[id]=DSD_MIG%40DF_MIG_EMP_EDU&df[ag]=OECD.ELS.IMD&dq=..A.....&pd=2000%2C2024&to[TIME_PERIOD]=false",
-        # Параметры отображения
-        show_in_country_list=True,
-        show_in_country_detail=True,
-        show_in_city_list=False,
-        show_in_city_detail=False,
-        list_priority=0,
-        detail_priority=0,
-        is_primary=True,
-        is_secondary=True,
         # Дополнительно
         meta_data=None,
         is_active=True,

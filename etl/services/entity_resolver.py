@@ -18,11 +18,11 @@ from etl.config.config_schema import (
 from etl.services import CacheService, DBService, RawRecord
 from etl.utils.period_key import make_period_key
 from src.core.config.logging import setup_logger_to_file
-from src.ms_metric.models import (
+from src.ms_metric.metrics import (
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
-    MetricPeriodNewModel,
-    MetricSeriesNewModel,
+    MetricPeriodModel,
+    MetricSeriesModel,
 )
 
 
@@ -375,7 +375,7 @@ class EntityResolver:
             found = await self.db_service.find_series_by_hashes(self.metric_id, missing_hashes)
             for h, sid in found.items():
                 result[h] = sid
-                series_obj = MetricSeriesNewModel(
+                series_obj = MetricSeriesModel(
                     id=sid,
                     metric_id=self.metric_id,
                     attributes_hash=h,
@@ -407,7 +407,7 @@ class EntityResolver:
                     created = await self.db_service.bulk_create_series(self.metric_id, to_create)
                     for h, sid in created.items():
                         result[h] = sid
-                        series_obj = MetricSeriesNewModel(
+                        series_obj = MetricSeriesModel(
                             id=sid,
                             metric_id=self.metric_id,
                             attributes_hash=h,
@@ -455,7 +455,7 @@ class EntityResolver:
                 if key in found_keys:
                     pid = found[key]
                     result[key] = pid
-                    period_obj = MetricPeriodNewModel(
+                    period_obj = MetricPeriodModel(
                         id=pid,
                         period_type=p.period_type,
                         period_year=p.period_year,
@@ -488,7 +488,7 @@ class EntityResolver:
                         key = make_period_key(dto)
                         result[key] = pid
                         # Кладём в кэш
-                        period_obj = MetricPeriodNewModel(
+                        period_obj = MetricPeriodModel(
                             id=pid,
                             period_type=dto.period_type,
                             period_year=dto.period_year,

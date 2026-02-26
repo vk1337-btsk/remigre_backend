@@ -4,21 +4,26 @@ from typing import Optional, Union
 from fastapi import Depends, HTTPException
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.dependency import get_sessionmaker
+from src.core.dependency import get_async_session, get_sessionmaker
 from src.ms_metric.schemas import (
     Body_GetLocationsByFilters,
     MetricDetailSchema,
     MetricOnlyListSchema,
 )
-from src.ms_metric.services.db_metric_service import DB_MetricService
+from src.ms_metric.services.db_service import DB_MetricService
 
 
 class MetricService:
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession] = Depends(get_sessionmaker)):
+    def __init__(
+        self,
+        session: AsyncSession = Depends(get_async_session),
+        session_factory: async_sessionmaker[AsyncSession] = Depends(get_sessionmaker),
+    ):
         """Инициализация основных параметров."""
 
-        self.service_db = DB_MetricService(session_factory)
+        self._async_session = session
+        self.service_db = DB_MetricService(session, session_factory)
 
     #
     #

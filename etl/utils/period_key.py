@@ -5,13 +5,13 @@
 from typing import Union
 
 from etl.config.config_schema import PeriodDataDTO
-from src.ms_metric.models import MetricPeriodNewModel
+from src.ms_metric.metrics import MetricPeriodModel
 
 
-def make_period_key(period: Union[PeriodDataDTO, MetricPeriodNewModel]) -> str:
+def make_period_key(period: Union[PeriodDataDTO, MetricPeriodModel]) -> str:
     """Генерирует строковый ключ периода на основе его полей."""
 
-    if isinstance(period, MetricPeriodNewModel):
+    if isinstance(period, MetricPeriodModel):
         period_type = period.period_type.value if hasattr(period.period_type, "value") else period.period_type
         year = period.period_year
         month = period.period_month

@@ -11,7 +11,7 @@ from src.ms_metric.schemas import (
 from src.ms_metric.services import MetricService
 
 
-router = APIRouter(prefix="/metrics", tags=["Metrics"])
+router = APIRouter(prefix="/metrics", tags=["Metrics"],include_in_schema=False)
 
 
 @router.get(
@@ -62,15 +62,15 @@ async def get_all_metrics_country_by_id(
 #     return await service.get_all_metrics_for_city(city_id=city_id)
 
 
-@router.get(
-    "/filters/info",
-    summary="Получает информацию о критериях фильтров",
-    description="Получает информацию о критериях фильтров",
-)
-async def get_filters_info(
-    service: MetricService = Depends(),
-):
-    return await service.get_filters_info()
+# @router.get(
+#     "/filters/info",
+#     summary="Получает информацию о критериях фильтров",
+#     description="Получает информацию о критериях фильтров",
+# )
+# async def get_filters_info(
+#     service: MetricService = Depends(),
+# ):
+#     return await service.get_filters_info()
 
 
 @router.post(

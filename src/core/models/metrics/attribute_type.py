@@ -12,7 +12,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 from src.core.enums import AttributeTypeValueEnum
 
 
@@ -51,15 +51,12 @@ class MetricAttributeTypeModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     is_active = Column(Boolean, default=True, nullable=False, comment="Активен ли тип атрибута")
     sort_order = Column(Integer, default=0, nullable=True, comment="Порядок сортировки типа атрибута")
     meta_data = Column(
-        JSONB, default={}, nullable=False, comment="Дополнительные метаданные типа атрибута в формате JSON"
+        JSONB, default=None, nullable=True, comment="Дополнительные метаданные типа атрибута в формате JSON"
     )
 
     # Связи
     values = relationship(
-        "MetricAttributeValueModel",
-        back_populates="attribute_type",  # Это должно совпадать с именем в MetricAttributeValueModel
-        cascade="all, delete-orphan",
-        lazy="selectin",  # Добавьте для оптимизации
+        "MetricAttributeValueModel", back_populates="attribute_type", cascade="all, delete-orphan", lazy="selectin"
     )
 
     series_attributes = relationship("MetricSeriesAttribute", back_populates="attribute_type")

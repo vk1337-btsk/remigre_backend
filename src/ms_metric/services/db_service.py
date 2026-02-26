@@ -4,15 +4,15 @@ from fastapi import HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.database import GetFilteredListDTO
-from src.ms_location.models import CountryModel
-from src.ms_metric.dto import MetricInfoGetDTO, MetricInfoOptionsDTO
-from src.ms_metric.models import (
+from src.core.models import (
+    CountryModel,
     MetricDataModel,
     MetricInfoModel,
     MetricPeriodModel,
     MetricSeriesModel,
 )
+from src.core.models.base_dto import GetFilteredListDTO
+from src.ms_metric.dto import MetricInfoGetDTO, MetricInfoOptionsDTO
 from src.ms_metric.schemas import MetricDetailSchema
 
 
@@ -21,9 +21,10 @@ logger = logging.getLogger(__name__)
 
 class DB_MetricService:
 
-    def __init__(self, session_factory: async_sessionmaker[AsyncSession]):
+    def __init__(self, session: AsyncSession, session_factory: async_sessionmaker[AsyncSession]):
         """Инициализация основных параметров."""
 
+        self._async_session = session
         self._session_factory = session_factory
 
     async def get_all_metrics(self) -> list[MetricDetailSchema]:
@@ -46,7 +47,7 @@ class DB_MetricService:
 
     async def get_all_metrics_city_by_id(self, city_id: int):
         """Получить все метрики по городу с использованием DTO и классовых методов MetricModel."""
-        
+
         pass
 
     async def get_all_metrics_country_by_id(self, country_id: int):
@@ -113,4 +114,3 @@ class DB_MetricService:
     #
     #
     # ===================== Операции, связывающие метрики и страны =====================
-    # async def

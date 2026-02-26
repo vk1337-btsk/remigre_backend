@@ -9,7 +9,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
 class MetricSeriesAttribute(AbstractBaseModel, CreatedUpdatedAtMixin):
@@ -29,7 +29,7 @@ class MetricSeriesAttribute(AbstractBaseModel, CreatedUpdatedAtMixin):
 
     series_id = Column(
         Integer,
-        ForeignKey("metric_series_new.id", name="fk_series", ondelete="CASCADE"),
+        ForeignKey("metric_series.id", name="fk_series", ondelete="CASCADE"),
         nullable=False,
         comment="Ссылка на серию данных метрики",
     )
@@ -66,11 +66,11 @@ class MetricSeriesAttribute(AbstractBaseModel, CreatedUpdatedAtMixin):
     )
 
     meta_data = Column(
-        JSONB, default={}, nullable=False, comment="Метаданные связи в формате JSON (по умолчанию пустой объект)"
+        JSONB, default=None, nullable=False, comment="Метаданные связи в формате JSON (по умолчанию пустой объект)"
     )
 
     # Связи
-    series = relationship("MetricSeriesNewModel", back_populates="series_attributes", overlaps="attributes")  # Добавить
+    series = relationship("MetricSeriesModel", back_populates="series_attributes", overlaps="attributes")  # Добавить
 
     attribute_type = relationship("MetricAttributeTypeModel", back_populates="series_attributes")
 

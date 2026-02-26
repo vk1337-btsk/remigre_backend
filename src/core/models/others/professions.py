@@ -18,7 +18,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
 class ProfessionsModel(AbstractBaseModel, CreatedUpdatedAtMixin):

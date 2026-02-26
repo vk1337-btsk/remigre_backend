@@ -10,8 +10,11 @@ from src.ms_location.schemas import (
     LocationOnlyListSchema,
     LocationsGeoJSON,
 )
-from src.ms_location.schemas.schemas import CountryShortInfoSchema
-from src.ms_location.services.location_service import LocationService
+from src.ms_location.schemas.schemas import (
+    CountryShortInfoDetail,
+    ListPaginatedCountryShortInfo,
+)
+from src.ms_location.services.service import LocationService
 
 
 logger = logging.getLogger(__name__)
@@ -75,51 +78,54 @@ async def get_coordinates_for_map(
 # --------------- Эндпоинты стран и городов --------------
 @router.get(
     "/countries",
-    summary="РЕАЛИЗОВАНО: Получить список стран с основной информацией об их характеристиках и метриках",
-    description="Можно получить список стран с основной информацией об их характеристиках и метриках",
+    summary="РЕАЛИЗОВАНО: Получить список стран с основной информацией об их характеристиках и актуальных метриках (с пагинацией)",
+    description="Возвращает объект с общим количеством стран и массивом данных для текущей страницы",
     tags=["Локации - Города и Страны"],
+    response_model=ListPaginatedCountryShortInfo,
 )
 async def get_all_counties(
     service: LocationService = Depends(),
-) -> list[CountryShortInfoSchema]:
+    limit: int = Query(10, ge=1, le=100, description="Количество записей на странице"),
+    offset: int = Query(0, ge=0, description="Смещение от начала списка"),
+) -> ListPaginatedCountryShortInfo:
 
-    return await service.get_list_countries()
-
-
-@router.get(
-    "/country/{country_id}",
-    summary="Получить информацию о стране по id",
-    description="Получаем подробную базовую информацию о стране",
-    tags=["Локации - Города и Страны"],
-)
-async def get_country_by_id(
-    country_id: int = Path(gt=1, title="ID страны"),
-    service: LocationService = Depends(),
-):
-    return await service.get_country(id=country_id)
+    return await service.get_list_countries(limit=limit, offset=offset)
 
 
-@router.get(
-    "/cities",
-    summary="Получить список городов",
-    description="Можно получить список городов с базовой информацией, или только список стран для фильтрации",
-    tags=["Локации - Города и Страны"],
-)
-async def get_all_city(
-    only_list: bool = Query(default=False, title="Определяет необходимость предоставления базовой информации"),
-    service: LocationService = Depends(),
-) -> Union[list[LocationOnlyListSchema], list[CityDetailSchema]]:
-    return await service.get_cities(only_list)
+# @router.get(
+#     "/country/{country_id}",
+#     summary="Получить информацию о стране по id",
+#     description="Получаем подробную базовую информацию о стране",
+#     tags=["Локации - Города и Страны"],
+# )
+# async def get_country_by_id(
+#     country_id: int = Path(gt=1, title="ID страны"),
+#     service: LocationService = Depends(),
+# ):
+#     return await service.get_country(id=country_id)
 
 
-@router.get(
-    "/city/{city_id}",
-    summary="Получить информацию о городе по id",
-    description="Получаем подробную базовую информацию о городе",
-    tags=["Локации - Города и Страны"],
-)
-async def get_city_by_id(
-    city_id: int = Path(title="ID города"),
-    service: LocationService = Depends(),
-):
-    return await service.get_city(id=city_id)
+# @router.get(
+#     "/cities",
+#     summary="Получить список городов",
+#     description="Можно получить список городов с базовой информацией, или только список стран для фильтрации",
+#     tags=["Локации - Города и Страны"],
+# )
+# async def get_all_city(
+#     only_list: bool = Query(default=False, title="Определяет необходимость предоставления базовой информации"),
+#     service: LocationService = Depends(),
+# ) -> Union[list[LocationOnlyListSchema], list[CityDetailSchema]]:
+#     return await service.get_cities(only_list)
+
+
+# @router.get(
+#     "/city/{city_id}",
+#     summary="Получить информацию о городе по id",
+#     description="Получаем подробную базовую информацию о городе",
+#     tags=["Локации - Города и Страны"],
+# )
+# async def get_city_by_id(
+#     city_id: int = Path(title="ID города"),
+#     service: LocationService = Depends(),
+# ):
+#     return await service.get_city(id=city_id)

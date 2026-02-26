@@ -17,14 +17,14 @@ from etl.config.config_schema import (
 )
 from etl.utils.period_key import make_period_key
 from src.core.config.logging import setup_logger_to_file
-from src.ms_metric.models import (
+from src.ms_metric.metrics import (
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
-    MetricDataNewModel,
-    MetricInfoNewModel,
-    MetricPeriodNewModel,
+    MetricDataModel,
+    MetricInfoModel,
+    MetricPeriodModel,
     MetricSeriesAttribute,
-    MetricSeriesNewModel,
+    MetricSeriesModel,
 )
 
 
@@ -57,16 +57,16 @@ class DBService:
     #
     #
     # ================= Метрика =================
-    async def get_or_create_metric(self, metric_config: MetricConfig) -> MetricInfoNewModel:
+    async def get_or_create_metric(self, metric_config: MetricConfig) -> MetricInfoModel:
         """Получить или создать метрику по slug."""
 
-        stmt = select(MetricInfoNewModel).where(MetricInfoNewModel.slug == metric_config.slug)
+        stmt = select(MetricInfoModel).where(MetricInfoModel.slug == metric_config.slug)
         result = await self._execute(stmt)
         metric = result.scalar_one_or_none()
 
         if metric is None:
             logger.info(f"Метрика не найдена, создаем новую: {metric_config.name}")
-            metric = MetricInfoNewModel(
+            metric = MetricInfoModel(
                 slug=metric_config.slug,
                 name=metric_config.name,
                 description=metric_config.description,
@@ -89,7 +89,7 @@ class DBService:
             await self.session.flush()
             logger.info(f"✅ Метрика создана: {metric.name} (ID: {metric.id})")
         else:
-            metric = cast(MetricInfoNewModel, metric)
+            metric = cast(MetricInfoModel, metric)
             logger.info(f"✅ Метрика найдена: {metric.name} (ID: {metric.id})")
 
         return metric
@@ -105,8 +105,8 @@ class DBService:
 
         if not hashes:
             return {}
-        stmt = select(MetricSeriesNewModel.attributes_hash, MetricSeriesNewModel.id).where(
-            MetricSeriesNewModel.metric_id == metric_id, MetricSeriesNewModel.attributes_hash.in_(hashes)
+        stmt = select(MetricSeriesModel.attributes_hash, MetricSeriesModel.id).where(
+            MetricSeriesModel.metric_id == metric_id, MetricSeriesModel.attributes_hash.in_(hashes)
         )
         result = await self._execute(stmt)
         return {row.attributes_hash: row.id for row in result}
@@ -121,7 +121,7 @@ class DBService:
         series_objects = []
         for h, attr_pairs in series_to_create:
             series_objects.append(
-                MetricSeriesNewModel(
+                MetricSeriesModel(
                     metric_id=metric_id,
                     attributes_hash=h,  # ← сохраняем хэш
                     is_active=True,
@@ -166,14 +166,14 @@ class DBService:
         for p in periods_data:
             conditions.append(
                 and_(
-                    MetricPeriodNewModel.period_type == p.period_type,
-                    MetricPeriodNewModel.period_year == p.period_year,
-                    MetricPeriodNewModel.period_month == p.period_month,
-                    MetricPeriodNewModel.period_quarter == p.period_quarter,
-                    MetricPeriodNewModel.period_week == p.period_week,
+                    MetricPeriodModel.period_type == p.period_type,
+                    MetricPeriodModel.period_year == p.period_year,
+                    MetricPeriodModel.period_month == p.period_month,
+                    MetricPeriodModel.period_quarter == p.period_quarter,
+                    MetricPeriodModel.period_week == p.period_week,
                 )
             )
-        stmt = select(MetricPeriodNewModel).where(or_(*conditions))
+        stmt = select(MetricPeriodModel).where(or_(*conditions))
         result = await self._execute(stmt)
         found = {}
         for period in result.scalars().all():
@@ -189,7 +189,7 @@ class DBService:
 
         objects = []
         for p in periods_to_create:
-            period = MetricPeriodNewModel(
+            period = MetricPeriodModel(
                 period_type=p.period_type,
                 period_year=p.period_year,
                 period_month=p.period_month,
@@ -303,7 +303,7 @@ class DBService:
     #
     #
     # =================  Данные метрик =================
-    async def bulk_insert_metric_data(self, records: List[MetricDataNewModel]) -> int:
+    async def bulk_insert_metric_data(self, records: List[MetricDataModel]) -> int:
         """Быстрая массовая вставка данных с использованием временной таблицы."""
 
         logger.info(f"💾 Вставка {len(records)} записей...")
@@ -435,13 +435,13 @@ class DBService:
 
     async def bulk_create_periods_and_return_ids(self, periods_to_create: List[PeriodDataDTO]) -> List[int]:
         """Создаёт периоды и возвращает список их ID в том же порядке, что и входной список."""
-        
+
         if not periods_to_create:
             return []
 
         objects = []
         for p in periods_to_create:
-            period = MetricPeriodNewModel(
+            period = MetricPeriodModel(
                 period_type=p.period_type,
                 period_year=p.period_year,
                 period_month=p.period_month,

@@ -1,11 +1,12 @@
-from typing import Any, Dict, List, Literal, Optional, Tuple, Union
+from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field, field_validator
 from shapely.geometry import mapping
 from shapely.wkb import loads
 
+from src.core.enums import TypeDataEnum
+from src.core.models import CountryModel
 from src.core.schemas.base_schemas import BaseSchema
-from src.ms_location.models.country import CountryModel
 
 
 class LocationMainInfoSchema(BaseSchema):
@@ -18,16 +19,55 @@ class LocationMainInfoSchema(BaseSchema):
 
 
 # ============ Схемы для стран ============
-class CountryShortInfoSchema(BaseSchema):
-    """Краткая информация о стране"""
+class ShortMetricValueDTO(BaseModel):
+
+    value_numeric: Optional[float] = Field(default=None)
+    value_string: Optional[str] = Field(default=None)
+    value_boolean: Optional[bool] = Field(default=None)
+    value_range_start: Optional[float] = Field(default=None)
+    value_range_end: Optional[float] = Field(default=None)
+    year: int
+    attributes: Dict[str, List[str]]
+
+
+class ShortMetricInfoDTO(BaseModel):
+
+    id: int
+    name: str
+    type: TypeDataEnum
+    display_priority: int
+    values: List[ShortMetricValueDTO]
+
+
+class MetricValueSchema(BaseModel):
+
+    value: Any
+    year: int
+    priority: int
+    attributes: Dict[str, str]
+
+
+class MetricInfoSchema(BaseModel):
+    id: int
+    name: str
+    type: TypeDataEnum
+    values: List[MetricValueSchema]
+
+
+class CountryShortInfoDetail(BaseModel):
+    """Информация о стране"""
 
     id: int
     name: str
     iso_alpha_2: str
-    currency: Optional[str] = Field(default=None)
-    population: Optional[int] = Field(default=None)
+    population: Optional[int]
+    metrics: List[MetricInfoSchema] = Field(default_factory=list)
 
-    metrics: dict
+
+class ListPaginatedCountryShortInfo(BaseModel):
+
+    total: int = Field(default=0)
+    items: List[CountryShortInfoDetail] = Field(default_factory=list)
 
 
 # ============

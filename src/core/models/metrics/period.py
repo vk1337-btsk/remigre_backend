@@ -14,14 +14,14 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 from src.core.enums import PeriodTypeEnum
 
 
-class MetricPeriodNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
+class MetricPeriodModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     """Модель периодов данных метрик (новая структура)"""
 
-    __tablename__ = "metric_period_new"
+    __tablename__ = "metric_period"
 
     __table_args__ = (
         CheckConstraint("date_start <= date_end", name="check_date_range"),
@@ -72,7 +72,7 @@ class MetricPeriodNewModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     meta_data = Column(JSONB, nullable=True, comment="Метаданные периода в формате JSON (источник, метод сбора и т.д.)")
 
     # Связи
-    data_entries = relationship("MetricDataNewModel", back_populates="period", cascade="all, delete-orphan")
+    data_entries = relationship("MetricDataModel", back_populates="period", cascade="all, delete-orphan")
 
     def __repr__(self):
         return f"<MetricPeriodNewModel(id={self.id},  year={self.period_year})>"

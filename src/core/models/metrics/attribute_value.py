@@ -11,7 +11,7 @@ from sqlalchemy import (
 from sqlalchemy.dialects.postgresql import JSONB
 from sqlalchemy.orm import relationship
 
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
 class MetricAttributeValueModel(AbstractBaseModel, CreatedUpdatedAtMixin):
@@ -46,19 +46,15 @@ class MetricAttributeValueModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     is_filtered = Column(Boolean, default=True, nullable=False, comment="Используется ли тип атрибута для фильтрации")
     sort_order = Column(Integer, default=0, nullable=True, comment="Порядок сортировки значения атрибута")
     meta_data = Column(
-        JSONB, default={}, nullable=False, comment="Дополнительные метаданные значения атрибута в формате JSON"
+        JSONB, default=None, nullable=True, comment="Дополнительные метаданные значения атрибута в формате JSON"
     )
 
     # Связи (ДОБАВЬТЕ attribute_type!)
-    attribute_type = relationship(
-        "MetricAttributeTypeModel",
-        back_populates="values",  # Это должно совпадать с именем в MetricAttributeTypeModel
-        foreign_keys=[attribute_type_id],
-    )
+    attribute_type = relationship("MetricAttributeTypeModel", back_populates="values", foreign_keys=[attribute_type_id])
 
     # Две связи для compatibility
     series = relationship(
-        "MetricSeriesNewModel",
+        "MetricSeriesModel",
         secondary="metric_series_attribute",
         back_populates="attributes",
         viewonly=True,

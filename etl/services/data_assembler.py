@@ -1,6 +1,6 @@
 # etl/services/data_assembler.py
 """
-Сборка моделей MetricDataNewModel из сырых записей и маппингов.
+Сборка моделей MetricDataModel из сырых записей и маппингов.
 """
 
 from decimal import ROUND_HALF_UP, Decimal
@@ -10,7 +10,7 @@ from etl.config.config_schema import ETLConfig, PeriodDataDTO
 from etl.services.data_parser import RawRecord
 from src.core.config.logging import setup_logger_to_file
 from src.core.enums import TypeDataEnum
-from src.ms_metric.models import MetricDataNewModel
+from src.ms_metric.metrics import MetricDataModel
 
 
 logger = setup_logger_to_file()
@@ -29,7 +29,7 @@ class DataAssembler:
         country_map: Dict[str, List[int]],
         series_map: Dict[str, int],
         period_map: Dict[str, int],
-    ) -> List[MetricDataNewModel]:
+    ) -> List[MetricDataModel]:
         """Создаёт список моделей для вставки."""
 
         result = []
@@ -70,7 +70,7 @@ class DataAssembler:
 
             # Для каждой страны создаём отдельную запись
             for country_id in country_ids:
-                model = MetricDataNewModel(
+                model = MetricDataModel(
                     series_id=series_id,
                     period_id=period_id,
                     country_id=country_id,
@@ -114,7 +114,7 @@ class DataAssembler:
 
                 else:
                     logger.warning(f"Тип значение FLOAT, но получен {raw=}, {type(raw)=}")
-                    
+
             # Если тип значения STRING
             elif self.metric_config.data_type == TypeDataEnum.STRING:
                 value_string = str(raw)

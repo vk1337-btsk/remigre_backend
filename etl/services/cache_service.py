@@ -14,14 +14,14 @@ from etl.config.config_schema import ETLConfig
 from etl.utils.lru_caches import AsyncLRUCache
 from src.core.config.logging import setup_logger_to_file
 from src.ms_location.models import CountryModel
-from src.ms_metric.models import (
+from src.ms_metric.metrics import (
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
-    MetricInfoNewModel,
-    MetricPeriodNewModel,
-    MetricSeriesNewModel,
+    MetricInfoModel,
+    MetricPeriodModel,
+    MetricSeriesModel,
 )
-from src.ms_metric.models.series_attributes import MetricSeriesAttribute
+from src.ms_metric.metrics.series_attributes import MetricSeriesAttribute
 
 
 logger = setup_logger_to_file()
@@ -150,20 +150,20 @@ class CacheService:
     #
     #
     # ================= Кэширование метрик =================
-    async def get_metric(self, slug: str) -> Optional[MetricInfoNewModel]:
+    async def get_metric(self, slug: str) -> Optional[MetricInfoModel]:
         return await self._metric_cache.get(slug)
 
-    async def set_metric(self, slug: str, metric: MetricInfoNewModel) -> None:
+    async def set_metric(self, slug: str, metric: MetricInfoModel) -> None:
         await self._metric_cache.set(slug, metric)
 
     #
     #
     #
     # ================= Кэширование серий =================
-    async def get_series(self, metric_id: int, attributes_hash: str) -> Optional[MetricSeriesNewModel]:
+    async def get_series(self, metric_id: int, attributes_hash: str) -> Optional[MetricSeriesModel]:
         return await self._series_cache.get(f"series_{metric_id}_{attributes_hash}")
 
-    async def set_series(self, metric_id: int, attributes_hash: str, series: MetricSeriesNewModel) -> None:
+    async def set_series(self, metric_id: int, attributes_hash: str, series: MetricSeriesModel) -> None:
         await self._series_cache.set(f"series_{metric_id}_{attributes_hash}", series)
 
     async def preload_series(self, session: AsyncSession, metric_id: int) -> None:
@@ -175,11 +175,11 @@ class CacheService:
         start = time.time()
 
         stmt = (
-            select(MetricSeriesNewModel)
-            .where(MetricSeriesNewModel.metric_id == metric_id)
+            select(MetricSeriesModel)
+            .where(MetricSeriesModel.metric_id == metric_id)
             .options(
-                selectinload(MetricSeriesNewModel.series_attributes).joinedload(MetricSeriesAttribute.attribute_type),
-                selectinload(MetricSeriesNewModel.series_attributes).joinedload(MetricSeriesAttribute.attribute_value),
+                selectinload(MetricSeriesModel.series_attributes).joinedload(MetricSeriesAttribute.attribute_type),
+                selectinload(MetricSeriesModel.series_attributes).joinedload(MetricSeriesAttribute.attribute_value),
             )
         )
         result = await session.execute(stmt)
@@ -215,10 +215,10 @@ class CacheService:
     #
     #
     # ================= Кэширование периодов =================
-    async def get_period(self, period_key: str) -> Optional[MetricPeriodNewModel]:
+    async def get_period(self, period_key: str) -> Optional[MetricPeriodModel]:
         return await self._period_cache.get(period_key)
 
-    async def set_period(self, period_key: str, period: MetricPeriodNewModel) -> None:
+    async def set_period(self, period_key: str, period: MetricPeriodModel) -> None:
         await self._period_cache.set(period_key, period)
 
     async def preload_periods(self, session: AsyncSession) -> None:
@@ -227,9 +227,7 @@ class CacheService:
         logger.info("🔄 Предзагрузка периодов с учетом конфигурации...")
         start = time.time()
 
-        stmt = (
-            select(MetricPeriodNewModel).order_by(MetricPeriodNewModel.created_at).limit(self.config.cache.period_size)
-        )
+        stmt = select(MetricPeriodModel).order_by(MetricPeriodModel.created_at).limit(self.config.cache.period_size)
 
         result = await session.execute(stmt)
         periods = result.scalars().all()
@@ -244,7 +242,7 @@ class CacheService:
         logger.info(f"✅ Предзагружено {count} периодов за {elapsed:.2f} сек")
 
     @staticmethod
-    def _make_period_key_from_model(period: MetricPeriodNewModel) -> str:
+    def _make_period_key_from_model(period: MetricPeriodModel) -> str:
         """Создаёт специальный ключ для кэширования периодов"""
 
         key = f"{period.period_type.value}_{period.period_year}"

@@ -2,7 +2,7 @@ import logging
 
 from sqlalchemy import Column, Integer, String, Text
 
-from src.core.database.models_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
+from src.core.models.base_and_mixins import AbstractBaseModel, CreatedUpdatedAtMixin
 
 
 logger = logging.getLogger(__name__)
@@ -17,5 +17,3 @@ class InfoModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     id = Column(Integer, primary_key=True, index=True, comment="ID записи")
     slug = Column(String, nullable=False, index=True, unique=True, comment="Название раздела")
     description = Column(Text, nullable=False, comment="Описание раздела")
-
-    # Классовые методы

@@ -271,16 +271,6 @@ class MetricConfig(BaseModel):
     source_name: Optional[str] = Field(default=None, max_length=255, description="Название источника")
     source_url: Optional[str] = Field(default=None, max_length=512, description="URL источника")
 
-    # Параметры отображения
-    show_in_country_list: bool = Field(default=False, description="Показывать в списке стран")
-    show_in_country_detail: bool = Field(default=False, description="Показывать в детальной странице страны")
-    show_in_city_list: bool = Field(default=False, description="Показывать в списке городов")
-    show_in_city_detail: bool = Field(default=False, description="Показывать в детальной странице города")
-    list_priority: int = Field(default=0, description="Приоритет в списках")
-    detail_priority: int = Field(default=0, description="Приоритет в детальных страницах")
-    is_primary: bool = Field(default=False, description="Основная метрика")
-    is_secondary: bool = Field(default=False, description="Вспомогательная метрика")
-
     # Дополнительно
     meta_data: Optional[Dict[str, Any]] = Field(default=None, description="Дополнительные метаданные метрики")
     is_active: bool = Field(default=True, description="Активна ли метрика")

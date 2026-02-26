@@ -1,1 +1,1 @@
-from .metric_service import MetricService
+from .service import MetricService
