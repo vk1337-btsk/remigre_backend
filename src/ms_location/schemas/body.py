@@ -1,11 +1,11 @@
 from typing import Literal
-from pydantic import Field
 
-from src.core.schemas.base_schemas import BaseSchema
+from pydantic import BaseModel, Field
 
 
-class Body_GetCountryOrCityByCoordinates(BaseSchema):
+class Body_GetCLocationByCoordinates(BaseModel):
+    """Тело POST запроса для получения страны/города по координатам"""
 
-    type: Literal["city", "country"]
-    latitude: float
-    longitude: float
+    type: Literal["city", "country"] = Field(description="Тип локации, которую хотим получить")
+    latitude: float = Field(description="Широта локации с карты")
+    longitude: float = Field(description="Долгота локации с карты")

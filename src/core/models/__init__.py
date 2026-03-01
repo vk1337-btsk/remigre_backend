@@ -7,9 +7,9 @@ from .metrics import (
     MetricDataModel,
     MetricInfoModel,
     MetricPeriodModel,
+    MetricPresetModel,
     MetricSeriesAttribute,
     MetricSeriesModel,
-    MetricPresetModel,
 )
 from .others import InfoModel
 

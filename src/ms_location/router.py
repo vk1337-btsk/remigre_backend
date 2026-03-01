@@ -1,19 +1,14 @@
 import logging
-from typing import Optional, Union
+from typing import Optional
 
 from fastapi import APIRouter, Body, Depends, Path, Query
 
 from src.ms_location.schemas import (
-    Body_GetCountryOrCityByCoordinates,
-    CityDetailSchema,
+    Body_GetCLocationByCoordinates,
     LocationMainInfoSchema,
-    LocationOnlyListSchema,
     LocationsGeoJSON,
 )
-from src.ms_location.schemas.schemas import (
-    CountryShortInfoDetail,
-    ListPaginatedCountryShortInfo,
-)
+from src.ms_location.schemas.schemas import ListPaginatedCountryShortInfo
 from src.ms_location.services.service import LocationService
 
 
@@ -49,7 +44,7 @@ async def get_search(
     tags=["Локации - Общее"],
 )
 async def get_city_by_coordinates(
-    body: Body_GetCountryOrCityByCoordinates = Body(),
+    body: Body_GetCLocationByCoordinates = Body(),
     service: LocationService = Depends(),
 ) -> LocationMainInfoSchema:
 
@@ -85,11 +80,11 @@ async def get_coordinates_for_map(
 )
 async def get_all_counties(
     service: LocationService = Depends(),
-    limit: int = Query(10, ge=1, le=100, description="Количество записей на странице"),
-    offset: int = Query(0, ge=0, description="Смещение от начала списка"),
+    page: int = Query(default=1, ge=1, description="Номер страницы (начиная с 1)"),
+    size: int = Query(default=10, ge=1, le=100, description="Количество записей на странице"),
 ) -> ListPaginatedCountryShortInfo:
 
-    return await service.get_list_countries(limit=limit, offset=offset)
+    return await service.get_list_countries(page=page, size=size)
 
 
 # @router.get(
@@ -105,7 +100,7 @@ async def get_all_counties(
 #     return await service.get_country(id=country_id)
 
 
-# @router.get(
+# # @router.get(
 #     "/cities",
 #     summary="Получить список городов",
 #     description="Можно получить список городов с базовой информацией, или только список стран для фильтрации",

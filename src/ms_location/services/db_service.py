@@ -1,12 +1,11 @@
-import json
 import logging
 from typing import Dict, List, Literal, Tuple
 
 from fastapi import HTTPException
-from sqlalchemy import and_, func, literal, select, text, true, union_all
+from sqlalchemy import and_, func, literal, select, text, union_all
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.m_views.mv_short_latest import MV_LocationShortLatestMetrics
+from src.core.m_views import MV_LocationShortLatestMetrics
 from src.core.models import (
     CityModel,
     CountryModel,
@@ -16,15 +15,8 @@ from src.core.models import (
     MetricPresetModel,
 )
 from src.ms_location.schemas import (
-    CityDetailSchema,
-    CountryDetailSchema,
     CountryShortInfoDetail,
     LocationMainInfoSchema,
-)
-from src.ms_location.schemas.schemas import (
-    ListPaginatedCountryShortInfo,
-    MetricInfoSchema,
-    MetricValueSchema,
     ShortMetricInfoDTO,
     ShortMetricValueDTO,
 )
@@ -198,10 +190,11 @@ class DB_LocationService:
     #
     # ============ Работа со странами ============
     async def get_active_countries_for_short_list(
-        self, limit: int, offset: int
+        self, page: int, size: int
     ) -> Tuple[int, List[CountryShortInfoDetail]]:
         """Возвращает список активных стран с поддер"""
 
+        offset = (page - 1) * size
         stmt = (
             select(
                 CountryModel.id,
@@ -212,7 +205,7 @@ class DB_LocationService:
             )
             .where(CountryModel.is_active == True)
             .order_by(CountryModel.name)
-            .limit(limit)
+            .limit(size)
             .offset(offset)
         )
         result = await self._async_session.execute(stmt)
@@ -271,23 +264,23 @@ class DB_LocationService:
 
         result_dict = {}
         for row in rows:
-            cid = row.country_id
+            country_id = row.country_id
             mid = row.metric_id
             priority = row.display_priority
 
-            if cid not in result_dict:
-                result_dict[cid] = {}
+            if country_id not in result_dict:
+                result_dict[country_id] = {}
 
-            if mid not in result_dict[cid]:
+            if mid not in result_dict[country_id]:
                 # Создаём запись метрики с текущим приоритетом
-                result_dict[cid][mid] = ShortMetricInfoDTO(
+                result_dict[country_id][mid] = ShortMetricInfoDTO(
                     id=mid,
                     name=row.name,
                     type=row.data_type,
                     values=[],
                     display_priority=priority,
                 )
-                result_dict[cid][mid].display_priority = priority
+                result_dict[country_id][mid].display_priority = priority
 
             # Добавляем значение
             value_dto = ShortMetricValueDTO(
@@ -299,18 +292,18 @@ class DB_LocationService:
                 year=row.period_year,
                 attributes=row.attributes or {},
             )
-            result_dict[cid][mid].values.append(value_dto)
+            result_dict[country_id][mid].values.append(value_dto)
 
         # Формируем финальный ответ для всех запрошенных стран
         final_result = {}
-        for cid in country_ids:
-            if cid in result_dict:
-                metrics_list = list(result_dict[cid].values())
+        for country_id in country_ids:
+            if country_id in result_dict:
+                metrics_list = list(result_dict[country_id].values())
                 # Сортируем метрики: сначала по display_priority (меньше = выше), затем по имени
                 metrics_list.sort(key=lambda m: (m.display_priority or 0, m.name))
-                final_result[cid] = metrics_list
+                final_result[country_id] = metrics_list
             else:
-                final_result[cid] = []
+                final_result[country_id] = []
         return final_result
 
     async def _get_attribute_mappings(self) -> Tuple[Dict[str, str], Dict[tuple, str]]:

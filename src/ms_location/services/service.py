@@ -7,7 +7,7 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
 from src.core.dependency import get_async_session, get_sessionmaker
 from src.ms_location.schemas import (
-    Body_GetCountryOrCityByCoordinates,
+    Body_GetCLocationByCoordinates,
     ListPaginatedCountryShortInfo,
     LocationMainInfoSchema,
     MetricInfoSchema,
@@ -70,7 +70,7 @@ class LocationService:
         return await self.service_db.get_coordinates_locations_for_map(tolerance)
 
     async def get_location_by_coordinates_from_map(
-        self, body: Body_GetCountryOrCityByCoordinates
+        self, body: Body_GetCLocationByCoordinates
     ) -> LocationMainInfoSchema:
         """Возвращает основную информацию об объекте локации по его координатам."""
 
@@ -83,29 +83,38 @@ class LocationService:
     #
     #
     # ============ Работа со странами ============
-    async def get_list_countries(self, limit: int, offset: int) -> ListPaginatedCountryShortInfo:
+    async def get_list_countries(self, page: int, size: int) -> ListPaginatedCountryShortInfo:
         """Возвращает список стран с основными метриками"""
 
-        total, countries = await self.service_db.get_active_countries_for_short_list(limit=limit, offset=offset)
+        # Получаю общее кол-во активных стран и список активных стран с характеристиками для текущей страницы
+        total, countries = await self.service_db.get_active_countries_for_short_list(page=page, size=size)
 
+        # Если нет стран
         if not countries:
             return ListPaginatedCountryShortInfo(total=total, items=[])
 
         countries_ids = [country.id for country in countries]
 
+        # Получаю сырые данные метрик по пресетам
         raw_metrics = await self.service_db.get_metrics_for_short_list_countries(countries_ids)
 
+        # Получаю наименования типов и значений атрибутов
         type_map, value_map = await self._get_attribute_mappings_cached()
         type_map = cast(Dict[str, str], type_map)
         value_map = cast(Dict[Tuple, str], value_map)
-        enriched_metrics = self._enrich_metrics(raw_metrics, type_map, value_map)
+
+        # Редактирую метрики
+        enriched_metrics = self._edit_metrics(raw_metrics, type_map, value_map)
 
         for country in countries:
             country.metrics = enriched_metrics.get(country.id, [])
 
         return ListPaginatedCountryShortInfo(total=total, items=countries)
 
-    def _enrich_metrics(
+    #
+    #
+    # ============ Вспомогательные методы ============
+    def _edit_metrics(
         self,
         raw_metrics_by_country: Dict[int, List[ShortMetricInfoDTO]],
         type_map: Dict[str, str],
