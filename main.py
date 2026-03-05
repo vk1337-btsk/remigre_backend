@@ -15,10 +15,14 @@ import uvicorn
 from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.openapi.docs import get_swagger_ui_html
+from sqladmin import Admin
 from sqlalchemy.ext.asyncio import async_sessionmaker, create_async_engine
 
 from src.core.dependency import docs_auth_dependency
 from src.core.services.ssh_service import ssh_manager
+from src.ms_admin.routers.images import router as image_router
+from src.ms_admin.routers.admin import router as admin_router
+from src.ms_admin.views import CountryAdmin
 from src.ms_location.router import router as location_router
 from src.ms_metric.router import router as metric_router
 
@@ -72,6 +76,10 @@ async def lifespan(app: FastAPI):
         app.state.engine = engine
         app.state.sessionmaker = sessionmaker
 
+        # Подключаем простую админку
+        admin = Admin(app, engine)
+        admin.add_view(CountryAdmin)
+
         # Проверка соединения
         async with engine.connect():
             pass
@@ -121,8 +129,10 @@ app.add_middleware(
 
 
 # --------------- Добавляем маршрутизацию --------------
-app.include_router(location_router)
-app.include_router(metric_router)
+app.include_router(location_router, prefix="/api")
+app.include_router(metric_router, prefix="/api")
+app.include_router(image_router, prefix="/api")
+app.include_router(admin_router, prefix="/api")
 
 
 # --------------- Логгируем необходимую информацию --------------

@@ -11,7 +11,7 @@ from .metrics import (
     MetricSeriesAttribute,
     MetricSeriesModel,
 )
-from .others import InfoModel
+from .others import ImageModel, InfoModel
 
 
 __all__ = [

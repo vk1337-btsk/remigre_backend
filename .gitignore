@@ -15,4 +15,5 @@ etc/
 
 secrets.txt
 ssh_tunnel/*
+uploads/*
 test.json

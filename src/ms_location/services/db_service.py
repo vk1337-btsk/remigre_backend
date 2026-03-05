@@ -15,9 +15,10 @@ from src.core.models import (
     MetricPresetModel,
 )
 from src.ms_location.schemas import (
-    CountryShortInfoDetail,
-    LocationMainInfoSchema,
-    ShortMetricInfoDTO,
+    DTO_ShortMetricInfo,
+    Responce_CityShortInfo,
+    Responce_CountryShortInfoDetail,
+    Responce_LocationMainInfoSchema,
     ShortMetricValueDTO,
 )
 
@@ -36,7 +37,7 @@ class DB_LocationService:
     #
     #
     # ============ Операции с локациями ============
-    async def get_locations_by_part_word(self, part_word: str) -> list[LocationMainInfoSchema]:
+    async def get_locations_by_part_word(self, part_word: str) -> list[Responce_LocationMainInfoSchema]:
         """Осуществляет поиск стран и городов по части их названия"""
 
         search = f"%{part_word}%"
@@ -70,7 +71,7 @@ class DB_LocationService:
         stmt = union_all(country_stmt, city_stmt)  # Объединяем запросы
         result = await self._async_session.execute(stmt)  # Получаем результат
 
-        return [LocationMainInfoSchema.model_validate(obj) for obj in result.mappings().all()]
+        return [Responce_LocationMainInfoSchema.model_validate(obj) for obj in result.mappings().all()]
 
     async def get_coordinates_locations_for_map(self, tolerance: float) -> dict:
         """Возвращает координаты и границы активных стран для карты"""
@@ -191,7 +192,7 @@ class DB_LocationService:
     # ============ Работа со странами ============
     async def get_active_countries_for_short_list(
         self, page: int, size: int
-    ) -> Tuple[int, List[CountryShortInfoDetail]]:
+    ) -> Tuple[int, List[Responce_CountryShortInfoDetail]]:
         """Возвращает список активных стран с поддер"""
 
         offset = (page - 1) * size
@@ -216,15 +217,17 @@ class DB_LocationService:
 
         total = rows[0].total
         items = [
-            CountryShortInfoDetail(id=row.id, name=row.name, iso_alpha_2=row.iso_alpha_2, population=row.population)
+            Responce_CountryShortInfoDetail(
+                id=row.id, name=row.name, iso_code=row.iso_alpha_2, population=row.population
+            )
             for row in rows
         ]
         return total, items
 
-    async def get_metrics_for_short_list_countries(self, country_ids: List[int]) -> Dict[int, List[ShortMetricInfoDTO]]:
-        """
-
-        Возвращает словарь, где ключ — ID страны, значение — список метрик c данными о них ().
+    async def get_metrics_for_short_list_countries(
+        self, country_ids: List[int]
+    ) -> Dict[int, List[DTO_ShortMetricInfo]]:
+        """Возвращает словарь, где ключ — ID страны, значение — список метрик c данными о них ().
         Учитываются только пресеты, помеченные for_country_list = True.
         """
 
@@ -242,7 +245,7 @@ class DB_LocationService:
                 MV_LocationShortLatestMetrics.value_range_start,
                 MV_LocationShortLatestMetrics.value_range_end,
                 MV_LocationShortLatestMetrics.attributes,
-                MetricInfoModel.name,
+                MetricPresetModel.name,
                 MetricInfoModel.data_type,
                 MetricInfoModel.data_type,
                 MetricPresetModel.display_priority,
@@ -273,7 +276,7 @@ class DB_LocationService:
 
             if mid not in result_dict[country_id]:
                 # Создаём запись метрики с текущим приоритетом
-                result_dict[country_id][mid] = ShortMetricInfoDTO(
+                result_dict[country_id][mid] = DTO_ShortMetricInfo(
                     id=mid,
                     name=row.name,
                     type=row.data_type,
@@ -305,6 +308,17 @@ class DB_LocationService:
             else:
                 final_result[country_id] = []
         return final_result
+
+    async def get_active_cities_by_country_id(self, country_id: int) -> list[Responce_CityShortInfo]:
+
+        stmt = select(CityModel.id, CityModel.name, CityModel.is_capital).where(
+            CityModel.country_id == country_id, CityModel.is_active == True
+        )
+
+        result = await self._async_session.execute(stmt)
+        rows = result.all()
+
+        return [Responce_CityShortInfo(id=row.id, name=row.name, is_capital=row.is_capital) for row in rows]
 
     async def _get_attribute_mappings(self) -> Tuple[Dict[str, str], Dict[tuple, str]]:
         """

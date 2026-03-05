@@ -6,7 +6,7 @@ from src.core.enums import TypeDataEnum
 from src.core.schemas.base_schemas import BaseSchema
 
 
-class LocationMainInfoSchema(BaseSchema):
+class Responce_LocationMainInfoSchema(BaseSchema):
     """Список стран/городов"""
 
     id: int = Field(description="ID объекта локации")
@@ -15,8 +15,8 @@ class LocationMainInfoSchema(BaseSchema):
     iso_code: str = Field(description="ISO-code alpha 2 страны объекта локации")
 
 
-# ============ Схемы для стран ============
-class MetricValueSchema(BaseModel):
+# ============ Схемы для отображения списка стран ============
+class Responce_MetricValueSchema(BaseModel):
     """Схема значения метрики"""
 
     value: Any = Field(title="Значение метрики")
@@ -25,29 +25,40 @@ class MetricValueSchema(BaseModel):
     attributes: Dict[str, str] = Field(title="Атрибуты метрики, такие как: пол, валюта, образование и т.д.")
 
 
-class MetricInfoSchema(BaseModel):
+class Responce_MetricInfoSchema(BaseModel):
     """Схема метрики"""
 
     id: int = Field(description="ID метрики")
     name: str = Field(description="Название метрики")
     type: TypeDataEnum = Field(description="Тип данных метрики")
-    values: List[MetricValueSchema] = Field(description="Список значений в зависимости от года и атрибутов")
+    values: List[Responce_MetricValueSchema] = Field(description="Список значений в зависимости от года и атрибутов")
 
 
-class CountryShortInfoDetail(BaseModel):
+class Responce_CountryShortInfoDetail(BaseModel):
     """Краткая информация о стране с характеристиками и метриками"""
 
     id: int = Field(description="ID страны")
     name: str = Field(description="Название страны")
-    iso_alpha_2: str = Field(description="Код ISO (2-х буквенный)")
+    iso_code: str = Field(description="Код ISO (2-х буквенный)")
     population: Optional[int] = Field(default=None, description="Население страны")
-    metrics: List[MetricInfoSchema] = Field(default_factory=list, description="Список с основными метриками страны")
+    metrics: List[Responce_MetricInfoSchema] = Field(
+        default_factory=list, description="Список с основными метриками страны"
+    )
 
 
-class ListPaginatedCountryShortInfo(BaseModel):
+class Responce_ListPaginatedCountryShortInfo(BaseModel):
     """Схема возврата списка стран с краткой характеристикой и основными метриками"""
 
-    total: int = Field(default=0, description="Общее кол-во стран")
-    items: List[CountryShortInfoDetail] = Field(
+    pages: int = Field(description="Общее кол-во страниц")
+    page: int = Field(description="Текущая страница")
+    items: List[Responce_CountryShortInfoDetail] = Field(
         default_factory=list, description="Список стран с характеристиками и метриками"
     )
+
+
+# ============ Схемы для отображения списка городов по стране ============
+class Responce_CityShortInfo(BaseModel):
+
+    id: int = Field(description="ID города")
+    name: str = Field(description="Название города")
+    is_capital: bool = Field(description="Флаг столицы страны")

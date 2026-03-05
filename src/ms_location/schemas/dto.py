@@ -16,7 +16,7 @@ class ShortMetricValueDTO(BaseModel):
     attributes: Dict[str, List[str]]
 
 
-class ShortMetricInfoDTO(BaseModel):
+class DTO_ShortMetricInfo(BaseModel):
 
     id: int
     name: str

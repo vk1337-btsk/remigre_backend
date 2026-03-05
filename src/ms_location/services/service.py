@@ -8,11 +8,12 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 from src.core.dependency import get_async_session, get_sessionmaker
 from src.ms_location.schemas import (
     Body_GetCLocationByCoordinates,
-    ListPaginatedCountryShortInfo,
-    LocationMainInfoSchema,
-    MetricInfoSchema,
-    MetricValueSchema,
-    ShortMetricInfoDTO,
+    DTO_ShortMetricInfo,
+    Responce_CityShortInfo,
+    Responce_ListPaginatedCountryShortInfo,
+    Responce_LocationMainInfoSchema,
+    Responce_MetricInfoSchema,
+    Responce_MetricValueSchema,
 )
 from src.ms_location.services.db_service import DB_LocationService
 from src.ms_location.services.handlers import metric_handlers
@@ -58,7 +59,7 @@ class LocationService:
     #
     #
     # ============ Общие методы для работы c локациями ============
-    async def search_location_by_part_word(self, part_word: str) -> list[LocationMainInfoSchema]:
+    async def search_location_by_part_word(self, part_word: str) -> list[Responce_LocationMainInfoSchema]:
         """Осуществляет поиск стран/городов по их названию и возвращает список из вариантов."""
 
         return await self.service_db.get_locations_by_part_word(part_word)
@@ -71,27 +72,28 @@ class LocationService:
 
     async def get_location_by_coordinates_from_map(
         self, body: Body_GetCLocationByCoordinates
-    ) -> LocationMainInfoSchema:
+    ) -> Responce_LocationMainInfoSchema:
         """Возвращает основную информацию об объекте локации по его координатам."""
 
         row = await self.service_db.get_location_by_coordinates_from_map(
             location_type=body.type, latitude=body.latitude, longitude=body.longitude
         )
 
-        return LocationMainInfoSchema(id=row["id"], type=body.type, name=row["name"], iso_code=row["iso_code"])
+        return Responce_LocationMainInfoSchema(id=row["id"], type=body.type, name=row["name"], iso_code=row["iso_code"])
 
     #
     #
     # ============ Работа со странами ============
-    async def get_list_countries(self, page: int, size: int) -> ListPaginatedCountryShortInfo:
+    async def get_list_countries(self, page: int, size: int) -> Responce_ListPaginatedCountryShortInfo:
         """Возвращает список стран с основными метриками"""
 
         # Получаю общее кол-во активных стран и список активных стран с характеристиками для текущей страницы
         total, countries = await self.service_db.get_active_countries_for_short_list(page=page, size=size)
+        total_pages = total // size + total % size
 
         # Если нет стран
         if not countries:
-            return ListPaginatedCountryShortInfo(total=total, items=[])
+            return Responce_ListPaginatedCountryShortInfo(pages=total_pages, page=page, items=[])
 
         countries_ids = [country.id for country in countries]
 
@@ -109,17 +111,23 @@ class LocationService:
         for country in countries:
             country.metrics = enriched_metrics.get(country.id, [])
 
-        return ListPaginatedCountryShortInfo(total=total, items=countries)
+        return Responce_ListPaginatedCountryShortInfo(pages=total_pages, page=page, items=countries)
+
+    async def get_cities_by_country(self, country_id: int) -> list[Responce_CityShortInfo]:
+        """Возвращает список активных городов страны"""
+
+        cities = await self.service_db.get_active_cities_by_country_id(country_id)
+        return cities
 
     #
     #
     # ============ Вспомогательные методы ============
     def _edit_metrics(
         self,
-        raw_metrics_by_country: Dict[int, List[ShortMetricInfoDTO]],
+        raw_metrics_by_country: Dict[int, List[DTO_ShortMetricInfo]],
         type_map: Dict[str, str],
         value_map: Dict[tuple, str],
-    ) -> Dict[int, List[MetricInfoSchema]]:
+    ) -> Dict[int, List[Responce_MetricInfoSchema]]:
         """Преобразует сырые метрики (с кодами атрибутов) в финальные схемы с названиями типов и значений."""
 
         result = {}
@@ -158,13 +166,13 @@ class LocationService:
                         value = None
 
                     enriched_values.append(
-                        MetricValueSchema(
+                        Responce_MetricValueSchema(
                             value=value, year=val.year, attributes=enriched_attrs, priority=metric.display_priority
                         )
                     )
 
                 enriched_metrics.append(
-                    MetricInfoSchema(id=metric.id, name=metric.name, type=metric.type, values=enriched_values)
+                    Responce_MetricInfoSchema(id=metric.id, name=metric.name, type=metric.type, values=enriched_values)
                 )
             result[country_id] = enriched_metrics
         return result

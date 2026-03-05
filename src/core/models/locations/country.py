@@ -87,6 +87,7 @@ class CountryModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     regions = relationship("RegionModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     cities = relationship("CityModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     metric_data = relationship("MetricDataModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
+    images = relationship("ImageModel", back_populates="country", cascade="all, delete-orphan")
 
     @hybrid_property
     def coordinates(self):

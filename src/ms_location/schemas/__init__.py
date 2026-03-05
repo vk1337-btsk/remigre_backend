@@ -1,4 +1,4 @@
 from .body import *
-from .schemas import *
-from .map import *
+from .responces import *
+from .map_responce import *
 from .dto import *

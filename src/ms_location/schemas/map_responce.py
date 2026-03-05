@@ -56,7 +56,7 @@ class CountriesGeoJSONFeatureCollection(BaseSchema):
     features: List[CountriesGeoJSONFeature]
 
 
-class LocationsGeoJSON(BaseSchema):
+class Responce_LocationsGeoJSON(BaseSchema):
     """Список GeoJSON городов и стран"""
 
     countries: CountriesGeoJSONFeatureCollection
