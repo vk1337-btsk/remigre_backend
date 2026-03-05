@@ -3,8 +3,8 @@ from pydantic import BaseModel, Field
 
 class Responce_UploadImage(BaseModel):
 
-    id: int
-    file_path: str
+    id: int = Field(description="ID изображения")
+    file_path: str = Field(description="Путь к изображению")
 
 
 class Responce_ListImages(BaseModel):
@@ -15,7 +15,7 @@ class Responce_ListImages(BaseModel):
     id: int = Field(description="ID изображения")
     url: str = Field(description="URL для получения изображения")
     is_main: bool = Field(description="Статус главного изображения")
-    caption: str
-    sort_order: int
-    mime_type: str
-    file_name: str
+    caption: str = Field(description="Подпись к изображению")
+    sort_order: int = Field(description="Значение для сортировки изображения")
+    mime_type: str = Field(description="MIME тип изображения")
+    file_name: str = Field(description="Название изображения")

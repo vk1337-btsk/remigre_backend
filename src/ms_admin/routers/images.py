@@ -1,6 +1,6 @@
 from typing import List
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Path
 from fastapi.responses import FileResponse
 
 from src.ms_admin.schemas import Responce_ListImages
@@ -15,7 +15,7 @@ router = APIRouter(prefix="/images", tags=["Изображения"])
     summary="Возвращает конкретное изображение по ID (файл)",
 )
 async def get_image_by_id(
-    image_id: int,
+    image_id: int = Path(),
     service: ImageService = Depends(),
 ) -> FileResponse:
     file_path, mime_type = await service.get_image_file(image_id)
@@ -31,7 +31,7 @@ async def get_image_by_id(
     summary="Возвращает главное изображение города",
 )
 async def get_main_city_image(
-    city_id: int,
+    city_id: int = Path(),
     service: ImageService = Depends(),
 ) -> FileResponse:
 
@@ -48,7 +48,7 @@ async def get_main_city_image(
     summary="Возвращает главное изображение страны (файл)",
 )
 async def get_main_country_image(
-    country_id: int,
+    country_id: int = Path(),
     service: ImageService = Depends(),
 ) -> FileResponse:
 
@@ -65,7 +65,7 @@ async def get_main_country_image(
     summary="Возвращает список всех изображений города (метаданные + ссылки)",
 )
 async def get_city_images(
-    city_id: int,
+    city_id: int = Path(),
     service: ImageService = Depends(),
 ) -> List[Responce_ListImages]:
 
@@ -77,7 +77,7 @@ async def get_city_images(
     summary="Возвращает список всех изображений страны (метаданные + ссылки)",
 )
 async def get_country_images(
-    country_id: int,
+    country_id: int = Path(),
     service: ImageService = Depends(),
 ) -> List[Responce_ListImages]:
 
