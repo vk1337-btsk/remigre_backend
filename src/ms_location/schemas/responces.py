@@ -45,6 +45,8 @@ class Responce_CountryShortInfoDetail(BaseModel):
         default_factory=list, description="Список с основными метриками страны"
     )
 
+    image_url: str = Field(description="URL для получения картинки")
+
 
 class Responce_ListPaginatedCountryShortInfo(BaseModel):
     """Схема возврата списка стран с краткой характеристикой и основными метриками"""

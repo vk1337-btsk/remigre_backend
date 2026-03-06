@@ -110,6 +110,7 @@ class LocationService:
 
         for country in countries:
             country.metrics = enriched_metrics.get(country.id, [])
+            country.image_url = f"/api/images/country/{country.id}/main"
 
         return Responce_ListPaginatedCountryShortInfo(pages=total_pages, page=page, items=countries)
 
