@@ -1,4 +1,5 @@
 import os
+import shutil
 import uuid
 from pathlib import Path
 from typing import List, Optional, cast
@@ -19,10 +20,15 @@ Path(UPLOAD_DIR).mkdir(exist_ok=True)
 
 class ImageService:
 
+    DEFAULT_IMAGE = "default.jpg"
+    DEFAULT_MIME = "image/jpeg"
+    DEFAULT_IMAGE_ID = -1
+
     def __init__(self, session: AsyncSession = Depends(get_async_session)):
         """Инициализация основных параметров."""
 
         self.service_db = DB_ImageService(session)
+        self._ensure_default_image()
 
     async def save_image(
         self,
@@ -68,30 +74,34 @@ class ImageService:
         return Responce_UploadImage(id=cast(int, image.id), file_path=cast(str, image.file_path))
 
     async def get_image_file(self, image_id: int) -> tuple[str, str]:
-        """Возвращает путь к файлу на диске и MIME-тип по ID."""
+        # Если запрошен специальный ID заглушки – возвращаем default.jpg
+        if image_id == self.DEFAULT_IMAGE_ID:
+            default_path = os.path.join(UPLOAD_DIR, self.DEFAULT_IMAGE)
+            return default_path, self.DEFAULT_MIME
 
         image = await self.service_db.get_image_by_id(image_id)
-
         if not image:
             raise HTTPException(404, "Изображение не найдено")
 
         disk_path = await self._ensure_file_on_disk(image)
         mime_type = image.mime_type or "application/octet-stream"
-
-        return disk_path, cast(str, mime_type)
+        return disk_path, mime_type
 
     async def get_main_image_file(
         self, city_id: Optional[int] = None, country_id: Optional[int] = None
     ) -> tuple[str, str]:
-
         if city_id:
-            image = await self._get_main_image("city", city_id)
+            image = await self.service_db.get_main_city_image(city_id)
         elif country_id:
-            image = await self._get_main_image("country", country_id)
+            image = await self.service_db.get_main_country_image(country_id)
         else:
             raise HTTPException(status_code=400, detail="Должен быть передан или city_id, или country_id")
 
-        return await self.get_image_file(cast(int, image.id))
+        if not image:
+            # возвращаем заглушку через тот же метод, что и по ID
+            return await self.get_image_file(self.DEFAULT_IMAGE_ID)
+
+        return await self.get_image_file(image.id)
 
     async def get_all_images_list(
         self, city_id: Optional[int] = None, country_id: Optional[int] = None
@@ -103,6 +113,20 @@ class ImageService:
             images = await self.service_db.get_all_images(country_id=country_id)
         else:
             raise HTTPException(status_code=400, detail="Должен быть передан или city_id, или country_id")
+
+        # Если изображений нет – возвращаем заглушку
+        if not images:
+            return [
+                Responce_ListImages(
+                    id=self.DEFAULT_IMAGE_ID,
+                    url=f"/images/{self.DEFAULT_IMAGE_ID}",
+                    is_main=False,
+                    caption="Default image",
+                    sort_order=0,
+                    mime_type=self.DEFAULT_MIME,
+                    file_name=self.DEFAULT_IMAGE,
+                )
+            ]
 
         return [
             Responce_ListImages(
@@ -116,19 +140,6 @@ class ImageService:
             )
             for img in images
         ]
-
-    async def _get_main_image(self, entity_type: str, entity_id: int) -> ImageModel:
-        """Общий метод получения главного изображения."""
-
-        if entity_type == "city":
-            image = await self.service_db.get_main_city_image(entity_id)
-        elif entity_type == "country":
-            image = await self.service_db.get_main_country_image(entity_id)
-        else:
-            raise HTTPException(400, "Неверный тип сущности")
-        if not image:
-            raise HTTPException(404, f"Для {entity_type} не найдено изображений")
-        return image
 
     def _generate_file_path(self, original_filename: str) -> str:
         """Общий метод для генерации названия и пути к файлу"""
@@ -152,3 +163,10 @@ class ImageService:
                 await f.write(file_data)
 
         return disk_path
+
+    def _ensure_default_image(self):
+        dest = os.path.join(UPLOAD_DIR, self.DEFAULT_IMAGE)
+        if not os.path.exists(dest):
+            source = Path(__file__).parent.parent / "src" / self.DEFAULT_IMAGE
+            if source.exists():
+                shutil.copy(source, dest)

@@ -1,3 +1,4 @@
+from pathlib import Path
 from typing import Any, Dict, List, Literal, Optional
 
 from pydantic import BaseModel, Field
@@ -45,7 +46,7 @@ class Responce_CountryShortInfoDetail(BaseModel):
         default_factory=list, description="Список с основными метриками страны"
     )
 
-    image_url: str = Field(description="URL для получения картинки")
+    image_url: str = Field(default="", description="URL для получения картинки")
 
 
 class Responce_ListPaginatedCountryShortInfo(BaseModel):

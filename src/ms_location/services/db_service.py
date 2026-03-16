@@ -218,7 +218,7 @@ class DB_LocationService:
         total = rows[0].total
         items = [
             Responce_CountryShortInfoDetail(
-                id=row.id, name=row.name, iso_code=row.iso_alpha_2, population=row.population
+                id=row.id, name=row.name, iso_code=row.iso_alpha_2, population=row.population, image_url=row.name
             )
             for row in rows
         ]
