@@ -23,6 +23,7 @@ class ImageService:
     DEFAULT_IMAGE = "default.jpg"
     DEFAULT_MIME = "image/jpeg"
     DEFAULT_IMAGE_ID = -1
+    DEFAULT_DIR = "src"
 
     def __init__(self, session: AsyncSession = Depends(get_async_session)):
         """Инициализация основных параметров."""
@@ -76,7 +77,7 @@ class ImageService:
     async def get_image_file(self, image_id: int) -> tuple[str, str]:
         # Если запрошен специальный ID заглушки – возвращаем default.jpg
         if image_id == self.DEFAULT_IMAGE_ID:
-            default_path = os.path.join(UPLOAD_DIR, self.DEFAULT_IMAGE)
+            default_path = os.path.join(self.DEFAULT_DIR, self.DEFAULT_IMAGE)
             return default_path, self.DEFAULT_MIME
 
         image = await self.service_db.get_image_by_id(image_id)
@@ -165,7 +166,7 @@ class ImageService:
         return disk_path
 
     def _ensure_default_image(self):
-        dest = os.path.join(UPLOAD_DIR, self.DEFAULT_IMAGE)
+        dest = os.path.join(self.DEFAULT_DIR, self.DEFAULT_IMAGE)
         if not os.path.exists(dest):
             source = Path(__file__).parent.parent / "src" / self.DEFAULT_IMAGE
             if source.exists():
