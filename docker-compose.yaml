@@ -1,9 +1,7 @@
-version: "3.9"
-
 services:
   backend:
     build: .
-    container_name: remigre_backend
+    container_name: backend
     restart: always
     ports:
       - "8000:8000"
@@ -11,15 +9,20 @@ services:
       - .env
     networks:
       - app_network
-    # Ограничение ресурсов (CPU и память)
-    mem_limit: 512m
-    cpus: 1.5
-    # Ротация логов Docker (чтобы не заполнили диск)
+    # Ограничение ресурсов (новый синтаксис)
+    deploy:
+      resources:
+        limits:
+          memory: 512M
+          cpus: "0.5" # или "0.8", но не больше 1.0
+    # Ротация логов Docker
     logging:
       driver: "json-file"
       options:
         max-size: "10m"
         max-file: "3"
+    labels:
+      dev.dozzle.group: backend
 
 networks:
   app_network:
