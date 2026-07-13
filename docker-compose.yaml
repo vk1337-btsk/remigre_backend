@@ -1,16 +1,28 @@
 version: "3.9"
+
 services:
   backend:
     build: .
-    container_name: trava_backend
+    container_name: remigre_backend
     restart: always
     ports:
       - "8000:8000"
     env_file:
       - .env
     networks:
-      - trava_network
+      - app_network
+    # Ограничение ресурсов (CPU и память)
+    mem_limit: 512m
+    cpus: 1.5
+    # Ротация логов Docker (чтобы не заполнили диск)
+    logging:
+      driver: "json-file"
+      options:
+        max-size: "10m"
+        max-file: "3"
 
 networks:
-  trava_network:
+  app_network:
+    name: remigre_network
+    driver: bridge
     external: true
