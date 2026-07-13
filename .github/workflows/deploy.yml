@@ -8,19 +8,21 @@ on:
 jobs:
     deploy:
         runs-on: ubuntu-latest
-
         steps:
-            - uses: actions/checkout@v3
+            - name: Checkout code
+              uses: actions/checkout@v3
 
-            - name: SSH to server and deploy
-              uses: appleboy/ssh-action@v0.1.6
+            - name: Deploy via SSH
+              uses: appleboy/ssh-action@v1.0.3
               with:
-                  host: ${{ secrets.DEPLOY_HOST }}
-                  username: ${{ secrets.DEPLOY_USER }}
-                  key: ${{ secrets.DEPLOY_KEY }}
+                  host: ${{ secrets.SERVER_HOST }}
+                  username: ${{ secrets.SERVER_USER }}
+                  key: ${{ secrets.SSH_PRIVATE_KEY }}
+                  port: 22
                   script: |
-                      cd ~/backend
-                      git pull
-                      docker-compose build
-                      docker-compose down --remove-orphans
-                      docker-compose up -d
+                      set -e
+                      cd ~/remigre/backend
+                      git pull origin main
+                      docker compose -f docker-compose.prod.yml build
+                      docker compose -f docker-compose.prod.yml down --remove-orphans
+                      docker compose -f docker-compose.prod.yml up -d
