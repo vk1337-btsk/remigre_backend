@@ -7,7 +7,7 @@
 from decimal import ROUND_HALF_UP, Decimal
 from typing import List, Optional, Union
 
-from etl.config.config_schema import (
+from etl.config.etl_config import (
     AttributeConfig,
     AttributeParsingStrategyEnum,
     AttributeTypeDTO,

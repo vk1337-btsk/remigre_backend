@@ -7,7 +7,7 @@
 from decimal import Decimal
 from typing import Optional, Union
 
-from etl.config.config_schema import (
+from etl.config.etl_config import (
     AttributeConfig,
     AttributeParsingStrategyEnum,
     AttributeTypeDTO,

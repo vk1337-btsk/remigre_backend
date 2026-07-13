@@ -10,18 +10,18 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
-from etl.config.config_schema import ETLConfig
+from etl.config.etl_config import ETLConfig
 from etl.utils.lru_caches import AsyncLRUCache
 from src.core.config.logging import setup_logger_to_file
-from src.ms_location.models import CountryModel
-from src.ms_metric.metrics import (
+from src.core.models import (
+    CountryModel,
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
     MetricInfoModel,
     MetricPeriodModel,
+    MetricSeriesAttribute,
     MetricSeriesModel,
 )
-from src.ms_metric.metrics.series_attributes import MetricSeriesAttribute
 
 
 logger = setup_logger_to_file()

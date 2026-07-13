@@ -59,9 +59,7 @@ class CityModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     country_id = Column(
         Integer, ForeignKey("loc_country.id", ondelete="CASCADE"), nullable=False, index=True, comment="ID страны"
     )
-    region_id = Column(
-        Integer, ForeignKey("loc_region.id", ondelete="CASCADE"), nullable=True, index=True, comment="ID региона"
-    )
+
     name = Column(String(255), nullable=False, index=True, comment="Название города")
     name_eng = Column(String(255), nullable=False, index=True, comment="Название города ENG")
 
@@ -87,7 +85,6 @@ class CityModel(AbstractBaseModel, CreatedUpdatedAtMixin):
 
     # Обратная связь
     country = relationship("CountryModel", back_populates="cities", lazy="noload", foreign_keys=[country_id])
-    region = relationship("RegionModel", back_populates="cities", lazy="noload", foreign_keys=[region_id])
     metric_data = relationship("MetricDataModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
     images = relationship("ImageModel", back_populates="city", lazy="noload", cascade="all, delete-orphan")
 

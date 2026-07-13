@@ -11,6 +11,7 @@ from etl.etl_configs import (
     create_avg_monthly_earnings_employees_sex_occupation_etl_config,
     create_lmoi_employment_rate_by_educational_attainment_etl_config,
     create_lmoi_employment_unemployment_and_participation_rates_by_sex_etl_config,
+    create_avg_monthly_surface_temperatures_by_year_etl_config,
 )
 from etl.orchestrator import ETLOrchestrator
 from etl.services.session_manager import session_manager
@@ -24,6 +25,7 @@ ETLConfigType = Literal[
     "avg_monthly_earnings",
     "employment_by_education",
     "employment_rates_by_sex",
+    "avg_monthly_surface_temperatures_by_year",
 ]
 
 
@@ -31,6 +33,7 @@ CONFIG_FACTORY_MAP: dict[str, Callable] = {
     "avg_monthly_earnings": create_avg_monthly_earnings_employees_sex_occupation_etl_config,
     "employment_by_education": create_lmoi_employment_rate_by_educational_attainment_etl_config,
     "employment_rates_by_sex": create_lmoi_employment_unemployment_and_participation_rates_by_sex_etl_config,
+    "avg_monthly_surface_temperatures_by_year": create_avg_monthly_surface_temperatures_by_year_etl_config,
 }
 
 

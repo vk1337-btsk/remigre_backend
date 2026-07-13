@@ -1,6 +1,6 @@
 from sqlalchemy.orm import configure_mappers
 
-from .locations import CityModel, CountryModel, RegionModel
+from .locations import CityModel, CountryModel
 from .metrics import (
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
@@ -17,7 +17,6 @@ from .others import ImageModel, InfoModel
 __all__ = [
     "CountryModel",
     "CityModel",
-    "RegionModel",
     "MetricAttributeTypeModel",
     "MetricAttributeValueModel",
     "MetricDataModel",
@@ -27,6 +26,7 @@ __all__ = [
     "MetricPeriodModel",
     "MetricSeriesAttribute",
     "MetricPresetModel",
+    "ImageModel",
 ]
 
 configure_mappers()  # Явно конфигурируем все мапперы после импорта всех моделей

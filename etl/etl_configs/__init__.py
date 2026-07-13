@@ -7,3 +7,4 @@ from .lmoi_employment_rate_by_educational_attainment import (
 from .lmoi_employment_unemployment_and_participation_rates_by_sex import (
     create_lmoi_employment_unemployment_and_participation_rates_by_sex_etl_config,
 )
+from .avg_monthly_surface_temperatures_by_year import create_avg_monthly_surface_temperatures_by_year_etl_config

@@ -16,7 +16,6 @@ psycopg2-binary = "^2.9.10"
 pydantic-settings = "^2.9.1"
 pydantic = "^2.11.7"
 requests = "^2.32.4"
-sqladmin = "^0.20.1"
 sqlalchemy = "^2.0.41"
 uvicorn = "^0.34.3"
 shapely = "^2.1.2"
@@ -30,6 +29,7 @@ numpy = "^2.4.2"
 selenium = "^4.40.0"
 bs4 = "^0.0.2"
 aiofiles = "^25.1.0"
+starlette-admin = "^0.16.0"
 
 [build-system]
 requires = ["poetry-core>=2.0.0,<3.0.0"]

@@ -8,7 +8,7 @@ import aiofiles
 from fastapi import Depends, HTTPException, UploadFile
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker
 
-from src.core.dependency import get_async_session, get_sessionmaker
+from src.core.dependency import get_async_session, get_async_sessionmaker
 from src.core.models import ImageModel
 from src.ms_admin.schemas import Responce_ListImages, Responce_UploadImage
 from src.ms_admin.services.db_service import DB_ImageService

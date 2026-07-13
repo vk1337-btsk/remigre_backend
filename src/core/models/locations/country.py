@@ -84,7 +84,6 @@ class CountryModel(AbstractBaseModel, CreatedUpdatedAtMixin):
     is_active = Column(Boolean, nullable=False, default=True, server_default=text("true"), comment="Статус отображения")
 
     # Обратная связь
-    regions = relationship("RegionModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     cities = relationship("CityModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     metric_data = relationship("MetricDataModel", back_populates="country", lazy="noload", cascade="all, delete-orphan")
     images = relationship("ImageModel", back_populates="country", cascade="all, delete-orphan")

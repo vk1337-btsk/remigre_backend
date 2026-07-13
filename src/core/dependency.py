@@ -10,16 +10,15 @@ from src.core.config import settings
 
 
 # ============ Зависимости для взаимодействия с БД ============
-def get_sessionmaker(request: Request) -> async_sessionmaker[AsyncSession]:
-    """Возвращает фабрику сессий для параллельного использования"""
-
-    return request.app.state.sessionmaker
+def get_async_sessionmaker(request: Request) -> async_sessionmaker[AsyncSession]:
+    """Возвращает асинхронную фабрику сессий"""
+    return request.app.state.async_sessionmaker
 
 
 async def get_async_session(request: Request) -> AsyncGenerator[AsyncSession, None]:
-    """Возвращает одну сессию для атомарных операций"""
-
-    async with request.app.state.sessionmaker() as session:
+    """Асинхронная сессия для атомарных операций"""
+    async_sessionmaker_ = request.app.state.async_sessionmaker
+    async with async_sessionmaker_() as session:
         try:
             yield session
             await session.commit()
@@ -48,7 +47,7 @@ def verify_docs_auth(credentials: HTTPBasicCredentials = Depends(security)):
 
 def docs_auth_dependency():
     """Зависимость только для базовой авторизации на странице документации - только на сервере."""
-    
+
     if settings.is_project:
         return Depends(verify_docs_auth)
     return None

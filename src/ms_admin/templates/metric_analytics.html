@@ -1,0 +1,98 @@
+{% extends "starlette_admin/layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Аналитика метрик</h1>
+    <form method="get" class="mb-4">
+        <div class="form-group row">
+            <label for="metric_id" class="col-sm-2 col-form-label">Выберите метрику:</label>
+            <div class="col-sm-6">
+                <select name="metric_id" id="metric_id" class="form-control">
+                    <option value="">-- Все метрики --</option>
+                    {% for metric in metrics %}
+                    <option value="{{ metric.id }}" {% if selected_metric_id == metric.id %}selected{% endif %}>
+                        {{ metric.name }} ({{ metric.slug }})
+                    </option>
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="col-sm-2">
+                <button type="submit" class="btn btn-primary">Показать</button>
+            </div>
+        </div>
+    </form>
+
+    {# Всегда показываем статистику, если выбрана метрика #}
+    {% if selected_metric_id %}
+        {% if total_series is not none %}
+        <div class="row mb-4">
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Всего серий</h5>
+                        <p class="card-text display-6">{{ total_series }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Серии с атрибутами</h5>
+                        <p class="card-text display-6">{{ series_with_attributes|default(0) }}</p>
+                        <small class="text-muted">{{ "%.1f"|format(percent_with_attrs|default(0)) }}% от всех</small>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Типов атрибутов</h5>
+                        <p class="card-text display-6">{{ total_attr_types|default(0) }}</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card">
+                    <div class="card-body">
+                        <h5 class="card-title">Комбинаций (тип+значение)</h5>
+                        <p class="card-text display-6">{{ total_attr_combinations|default(0) }}</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if data %}
+        <h2>Результат</h2>
+        <div class="table-responsive">
+            <table class="table table-striped">
+                <thead>
+                    <tr>
+                        <th>Тип код</th>
+                        <th>Тип имя</th>
+                        <th>Всего серий с этим типом</th>
+                        <th>Значение код</th>
+                        <th>Значение имя</th>
+                        <th>Количество серий с этим значением</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for row in data %}
+                    <tr>
+                        <td>{{ row.type_code }}</td>
+                        <td>{{ row.type_name }}</td>
+                        <td>{{ row.total_series_for_type }}</td>
+                        <td>{{ row.value_code }}</td>
+                        <td>{{ row.value_name }}</td>
+                        <td>{{ row.series_count }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        {% elif total_series is not none %}
+        <div class="alert alert-info">Нет данных о комбинациях атрибутов, встречающихся более чем в одной серии.</div>
+        {% endif %}
+    {% endif %}
+</div>
+{% endblock %}

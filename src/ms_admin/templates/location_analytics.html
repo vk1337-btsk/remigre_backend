@@ -1,0 +1,138 @@
+{% extends "starlette_admin/layout.html" %}
+
+{% block content %}
+<div class="container">
+    <h1>Аналитика стран и городов</h1>
+
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Всего стран</h5>
+                    <p class="card-text display-6">{{ stats.total_countries }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Активных стран</h5>
+                    <p class="card-text display-6">{{ stats.active_countries }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Всего городов</h5>
+                    <p class="card-text display-6">{{ stats.total_cities }}</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card">
+                <div class="card-body">
+                    <h5 class="card-title">Активных городов</h5>
+                    <p class="card-text display-6">{{ stats.active_cities }}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row mb-4">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-warning text-dark">
+                    <h5 class="mb-0">⚠️ Активные страны без активных городов ({{ stats.countries_without_cities }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if countries_without_cities %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID</th>
+                                    <th>Название</th>
+                                    <th>Статус</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in countries_without_cities %}
+                                <tr>
+                                    <td>{{ row.id }}</td>
+                                    <td>{{ row.name }}</td>
+                                    <td>
+                                        {% if row.is_active %}
+                                        <span class="badge bg-success">Активна</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Неактивна</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">Все активные страны имеют хотя бы один активный город.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="row">
+        <div class="col-md-12">
+            <div class="card">
+                <div class="card-header bg-danger text-white">
+                    <h5 class="mb-0">⚠️ Активные города с неактивной страной ({{ stats.cities_with_inactive_country }})</h5>
+                </div>
+                <div class="card-body">
+                    {% if cities_with_inactive_country %}
+                    <div class="table-responsive">
+                        <table class="table table-striped">
+                            <thead>
+                                <tr>
+                                    <th>ID города</th>
+                                    <th>Название города</th>
+                                    <th>Страна (ID)</th>
+                                    <th>Название страны</th>
+                                    <th>Статус города</th>
+                                    <th>Статус страны</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                {% for row in cities_with_inactive_country %}
+                                <tr>
+                                    <td>{{ row.id }}</td>
+                                    <td>{{ row.name }}</td>
+                                    <td>{{ row.country_id }}</td>
+                                    <td>{{ row.country_name }}</td>
+                                    <td>
+                                        {% if row.city_active %}
+                                        <span class="badge bg-success">Активен</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Неактивен</span>
+                                        {% endif %}
+                                    </td>
+                                    <td>
+                                        {% if row.country_active %}
+                                        <span class="badge bg-success">Активна</span>
+                                        {% else %}
+                                        <span class="badge bg-secondary">Неактивна</span>
+                                        {% endif %}
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            </tbody>
+                        </table>
+                    </div>
+                    {% else %}
+                    <div class="alert alert-success">Нет активных городов, привязанных к неактивной стране.</div>
+                    {% endif %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}

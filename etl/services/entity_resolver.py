@@ -5,11 +5,11 @@
 """
 import asyncio
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple, cast
+from typing import Dict, List, Set, Tuple, cast
 
 from sqlalchemy import select
 
-from etl.config.config_schema import (
+from etl.config.etl_config import (
     AttributeTypeDTO,
     ETLConfig,
     ParsedAttributeDTO,
@@ -18,7 +18,7 @@ from etl.config.config_schema import (
 from etl.services import CacheService, DBService, RawRecord
 from etl.utils.period_key import make_period_key
 from src.core.config.logging import setup_logger_to_file
-from src.ms_metric.metrics import (
+from src.core.models import (
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
     MetricPeriodModel,

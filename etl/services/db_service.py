@@ -3,13 +3,13 @@
 Асинхронный сервис для работы с БД
 """
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional, Tuple, cast
+from typing import Dict, List, Optional, Tuple, cast
 
 from sqlalchemy import and_, or_, select, text
 from sqlalchemy.ext.asyncio import AsyncSession
 from tenacity import retry, stop_after_attempt, wait_exponential
 
-from etl.config.config_schema import (
+from etl.config.etl_config import (
     AttributeTypeDTO,
     AttributeValueDTO,
     MetricConfig,
@@ -17,7 +17,7 @@ from etl.config.config_schema import (
 )
 from etl.utils.period_key import make_period_key
 from src.core.config.logging import setup_logger_to_file
-from src.ms_metric.metrics import (
+from src.core.models import (
     MetricAttributeTypeModel,
     MetricAttributeValueModel,
     MetricDataModel,
@@ -74,14 +74,6 @@ class DBService:
                 data_type=metric_config.data_type.value,
                 source_name=metric_config.source_name,
                 source_url=metric_config.source_url,
-                show_in_country_list=metric_config.show_in_country_list,
-                show_in_country_detail=metric_config.show_in_country_detail,
-                show_in_city_list=metric_config.show_in_city_list,
-                show_in_city_detail=metric_config.show_in_city_detail,
-                list_priority=metric_config.list_priority,
-                detail_priority=metric_config.detail_priority,
-                is_primary=metric_config.is_primary,
-                is_secondary=metric_config.is_secondary,
                 meta_data=metric_config.meta_data,
                 is_active=metric_config.is_active,
             )
@@ -374,7 +366,7 @@ class DBService:
             # Вставляем из временной таблицы в основную, избегая дубликатов
             insert_stmt = text(
                 """
-                INSERT INTO metric_data_new 
+                INSERT INTO metric_data 
                 (series_id, period_id, country_id, city_id,
                  value_numeric, value_string, value_boolean,
                  value_range_start, value_range_end,
@@ -387,7 +379,7 @@ class DBService:
                 FROM temp_metric_data t
                 WHERE NOT EXISTS (
                     SELECT 1 
-                    FROM metric_data_new m
+                    FROM metric_data m
                     WHERE m.series_id = t.series_id
                       AND m.country_id = t.country_id
                       AND m.period_id = t.period_id

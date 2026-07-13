@@ -9,7 +9,7 @@ from typing import Any, Dict, List, Optional, Tuple
 import pandas as pd
 from typing_extensions import TypedDict
 
-from etl.config.config_schema import (
+from etl.config.etl_config import (
     AttributeParsingStrategyEnum,
     AttributeTypeDTO,
     AttributeValueDTO,

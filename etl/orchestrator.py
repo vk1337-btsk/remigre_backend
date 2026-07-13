@@ -10,7 +10,7 @@ from typing import List, Literal, cast
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from etl.config.config_schema import ETLConfig
+from etl.config.etl_config import ETLConfig
 from etl.services import (
     CacheService,
     DataAssembler,

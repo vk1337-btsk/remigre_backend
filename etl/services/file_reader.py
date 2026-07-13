@@ -9,7 +9,7 @@ from typing import AsyncGenerator, Set
 
 import pandas as pd
 
-from etl.config.config_schema import ETLConfig
+from etl.config.etl_config import ETLConfig
 from src.core.config.logging import setup_logger_to_file
 
 

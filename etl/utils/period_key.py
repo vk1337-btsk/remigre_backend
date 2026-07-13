@@ -4,8 +4,8 @@
 """
 from typing import Union
 
-from etl.config.config_schema import PeriodDataDTO
-from src.ms_metric.metrics import MetricPeriodModel
+from etl.config.etl_config import PeriodDataDTO
+from src.core.models import MetricPeriodModel
 
 
 def make_period_key(period: Union[PeriodDataDTO, MetricPeriodModel]) -> str:

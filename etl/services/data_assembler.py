@@ -3,14 +3,15 @@
 Сборка моделей MetricDataModel из сырых записей и маппингов.
 """
 
-from decimal import ROUND_HALF_UP, Decimal
+from decimal import Decimal
+import decimal
 from typing import Any, Dict, List, Optional, Tuple, Union
 
-from etl.config.config_schema import ETLConfig, PeriodDataDTO
+from etl.config.etl_config import ETLConfig, PeriodDataDTO
 from etl.services.data_parser import RawRecord
 from src.core.config.logging import setup_logger_to_file
 from src.core.enums import TypeDataEnum
-from src.ms_metric.metrics import MetricDataModel
+from src.core.models import MetricDataModel
 
 
 logger = setup_logger_to_file()
@@ -107,7 +108,17 @@ class DataAssembler:
 
                 if isinstance(raw, str):
                     cleaned = raw.replace(",", ".")  # Заменяем запятую на точку
-                    value_numeric = Decimal(cleaned) if cleaned else None
+                    # Проверка на специальные нечисловые значения
+                    if cleaned.lower() in ("", "nan", "null", "none", "na"):
+                        return None, None, None, None, None
+                    try:
+                        value_numeric = decimal.Decimal(cleaned)
+                    except decimal.InvalidOperation:
+                        logger.warning(
+                            f"Не удалось преобразовать значение '{raw}' в Decimal "
+                            f"(после очистки: '{cleaned}'). Пропускаем."
+                        )
+                        return None, None, None, None, None
 
                 elif isinstance(raw, int) or isinstance(raw, float) or isinstance(raw, Decimal):
                     value_numeric = Decimal(str(raw))
