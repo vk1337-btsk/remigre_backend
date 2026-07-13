@@ -7,7 +7,7 @@ WORKDIR /app
 COPY --from=ghcr.io/astral-sh/uv:latest /uv /usr/local/bin/uv
 
 # Копируем только файлы зависимостей (для кеширования)
-COPY pyproject.toml poetry.lock* ./
+COPY pyproject.toml uv.lock* ./
 
 # Устанавливаем зависимости в виртуальное окружение (без dev-пакетов)
 RUN uv sync --frozen --no-dev --no-install-project
