@@ -1,20 +1,19 @@
-#
+# 
 .vscode
-.idea
-
 poetry.lock
-
 __pycache__
-
 logs/
 data/
 dumps/
 etc/
 
-.env.local
-
-secrets.txt
 ssh_tunnel/*
 uploads/*
 test.json
+
+# Секреты
+.env.local
+.env.docker
+.env
+secrets.txt
 secrets.env
